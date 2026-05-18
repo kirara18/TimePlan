@@ -5,10 +5,11 @@ import { StatBox } from '../components/StatBox'
 import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, HABITS_KEY as PLAN_HABITS_KEY, HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { AppColors } from '../utils/AppColors'
 
 @Component
 export struct CheckPage {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -83,18 +84,18 @@ export struct CheckPage {
         Text('打卡 OKR')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1F2937')
+          .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
         Text('建立习惯时填写日期、开始时间和结束时间')
           .fontSize(15)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 20 })
 
         TextInput({ text: this.habitSearchText, placeholder: '搜索习惯名称或目标...' })
           .width('100%')
           .height(44)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 20 })
@@ -106,7 +107,7 @@ export struct CheckPage {
           Text('今日打卡概览')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 14 })
 
           Row() {
@@ -119,7 +120,7 @@ export struct CheckPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -143,13 +144,13 @@ export struct CheckPage {
             Text('新增习惯')
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#111827')
+              .fontColor(AppColors.GRAY_900)
               .margin({ bottom: 12 })
 
             TextInput({ text: this.habitTitle, placeholder: '请输入习惯名称，例如：背单词' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -160,7 +161,7 @@ export struct CheckPage {
             TextInput({ text: this.habitTarget, placeholder: '请输入目标，例如：每天 20 个单词' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -171,7 +172,7 @@ export struct CheckPage {
             TextInput({ text: this.habitTargetDaysText, placeholder: '请输入计划打卡天数，例如：30' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -182,7 +183,7 @@ export struct CheckPage {
             TextInput({ text: this.habitDate, placeholder: '请输入日期，例如：2026-05-17 或 19' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -194,7 +195,7 @@ export struct CheckPage {
               TextInput({ text: this.habitStartTime, placeholder: '开始 09:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ right: 6 })
@@ -205,7 +206,7 @@ export struct CheckPage {
               TextInput({ text: this.habitEndTime, placeholder: '结束 10:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ left: 6 })
@@ -221,7 +222,7 @@ export struct CheckPage {
               .height(44)
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .backgroundColor('#22C55E')
+              .backgroundColor(AppColors.GREEN)
               .borderRadius(12)
               .onClick(() => {
                 this.addHabit()
@@ -229,7 +230,7 @@ export struct CheckPage {
           }
           .width('100%')
           .padding(18)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(18)
           .margin({ bottom: 18 })
         }
@@ -238,14 +239,14 @@ export struct CheckPage {
           Text('习惯列表')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           if (this.getFilteredHabits().length === 0) {
             Column() {
               Text('暂无匹配习惯')
                 .fontSize(16)
-                .fontColor('#9CA3AF')
+                .fontColor(AppColors.GRAY_400)
                 .margin({ top: 20, bottom: 20 })
             }
             .width('100%')
@@ -258,7 +259,7 @@ export struct CheckPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -267,7 +268,7 @@ export struct CheckPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
   }
 
   @Builder
@@ -276,18 +277,18 @@ export struct CheckPage {
       Row() {
         Text(this.isCheckedToday(habit) ? '✓' : '○')
           .fontSize(24)
-          .fontColor(this.isCheckedToday(habit) ? '#22C55E' : '#9CA3AF')
+          .fontColor(this.isCheckedToday(habit) ? AppColors.GREEN : AppColors.GRAY_400)
           .margin({ right: 10 })
 
         Column() {
           Text(habit.title)
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
 
           Text(habit.target)
             .fontSize(14)
-            .fontColor('#6B7280')
+            .fontColor(AppColors.GRAY_500)
             .margin({ top: 4 })
 
           Text('日期：' + safeText(habit.date, '未设置') + '    时间：' + safeText(habit.startTime, '未设置') + ' - ' + safeText(habit.endTime, '未设置'))
@@ -309,13 +310,13 @@ export struct CheckPage {
           }
           .width('100%')
           .height(8)
-          .backgroundColor('#E5E7EB')
+          .backgroundColor(AppColors.GRAY_200)
           .borderRadius(4)
           .margin({ top: 8 })
 
           Text('创建：' + habit.createDate + '    ' + (this.isCheckedToday(habit) ? '今日状态：已打卡' : '今日状态：未打卡'))
             .fontSize(12)
-            .fontColor(this.isCheckedToday(habit) ? '#22C55E' : '#EF4444')
+            .fontColor(this.isCheckedToday(habit) ? AppColors.GREEN : AppColors.RED)
             .margin({ top: 8 })
         }
         .layoutWeight(1)
@@ -329,7 +330,7 @@ export struct CheckPage {
           .layoutWeight(1)
           .height(38)
           .fontSize(14)
-          .backgroundColor(this.isCheckedToday(habit) ? '#9CA3AF' : '#22C55E')
+          .backgroundColor(this.isCheckedToday(habit) ? AppColors.GRAY_400 : AppColors.GREEN)
           .borderRadius(12)
           .margin({ right: 8 })
           .onClick(() => {
@@ -340,7 +341,7 @@ export struct CheckPage {
           .layoutWeight(1)
           .height(38)
           .fontSize(14)
-          .backgroundColor('#EF4444')
+          .backgroundColor(AppColors.RED)
           .borderRadius(12)
           .margin({ left: 8 })
           .onClick(() => {
@@ -351,7 +352,7 @@ export struct CheckPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(this.isCheckedToday(habit) ? '#F0FDF4' : '#F9FAFB')
+    .backgroundColor(this.isCheckedToday(habit) ? AppColors.GREEN_50 : AppColors.GRAY_50)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }

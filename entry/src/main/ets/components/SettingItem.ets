@@ -1,3 +1,4 @@
+import { AppColors } from '../utils/AppColors'
 @Component
 export struct SettingItem {
   @Prop title: string = ''
@@ -7,22 +8,22 @@ export struct SettingItem {
     Row() {
       Text(this.title)
         .fontSize(16)
-        .fontColor('#111827')
+        .fontColor(AppColors.GRAY_900)
 
       Blank()
 
       Text(this.value)
         .fontSize(14)
-        .fontColor('#6B7280')
+        .fontColor(AppColors.GRAY_500)
 
       Text(' >')
         .fontSize(14)
-        .fontColor('#9CA3AF')
+        .fontColor(AppColors.GRAY_400)
     }
     .width('100%')
     .height(54)
     .padding({ left: 16, right: 16 })
-    .backgroundColor('#FFFFFF')
+    .backgroundColor(AppColors.WHITE)
     .borderRadius(14)
     .margin({ bottom: 10 })
   }

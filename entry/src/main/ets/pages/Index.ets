@@ -3,11 +3,12 @@ import { PlanPage } from './PlanPage'
 import { NotePage } from './NotePage'
 import { CheckPage } from './CheckPage'
 import { MinePage } from './MinePage'
+import { AppColors } from '../utils/AppColors'
 @Entry
 @Component
 struct Index {
   @State currentIndex: number = 0
-  @State themeColor: string = '#4F7CFF'
+  @State themeColor: string = AppColors.BLUE
 
   build() {
     Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
@@ -43,7 +44,7 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
     .onChange((index: number) => {
       this.currentIndex = index
     })

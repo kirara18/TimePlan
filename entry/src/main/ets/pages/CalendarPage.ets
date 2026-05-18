@@ -5,10 +5,11 @@ import { StatBox } from '../components/StatBox'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, NOTES_KEY as PLAN_NOTES_KEY, HABITS_KEY as PLAN_HABITS_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 import { safeText, getToday, formatDate, formatMonth, normalizeDateInput, getWeekTitles, getYearFromDate, getMonthFromDate, dateInList, dateToDayNumber, dayNumberToDate, buildMonthDays, SimpleCalendarDay } from '../utils/DateUtil'
+import { AppColors } from '../utils/AppColors'
 
 @Component
 export struct CalendarPage {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -52,12 +53,12 @@ export struct CalendarPage {
         Text('日历安排')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1F2937')
+          .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
         Text('按月查看计划、便签、打卡中的全部安排')
           .fontSize(15)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
 
         Text(this.operationTip)
@@ -82,10 +83,10 @@ export struct CalendarPage {
             Text(this.getMonthTitle())
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#111827')
+              .fontColor(AppColors.GRAY_900)
               .padding({ left: 12, right: 12, top: 6, bottom: 6 })
               .borderRadius(10)
-              .backgroundColor('#F3F4F6')
+              .backgroundColor(AppColors.GRAY_100)
               .onClick(() => {
                 this.pickerYear = this.currentYear
 
@@ -124,7 +125,7 @@ export struct CalendarPage {
                 .width('14.28%')
                 .fontSize(13)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#6B7280')
+                .fontColor(AppColors.GRAY_500)
                 .textAlign(TextAlign.Center)
             }, (item: string) => item)
           }
@@ -145,7 +146,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -153,7 +154,7 @@ export struct CalendarPage {
           Text('当月概览')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 14 })
 
           Row() {
@@ -166,7 +167,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -174,19 +175,19 @@ export struct CalendarPage {
           Text(this.selectedDate + ' 的详细安排')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           if (this.getSelectedDayItems().length === 0) {
             Column() {
               Text('这一天暂无安排')
                 .fontSize(16)
-                .fontColor('#9CA3AF')
+                .fontColor(AppColors.GRAY_400)
                 .margin({ top: 20, bottom: 20 })
 
               Text('请到计划、便签、打卡页新增带日期和时间的内容')
                 .fontSize(13)
-                .fontColor('#9CA3AF')
+                .fontColor(AppColors.GRAY_400)
                 .margin({ bottom: 20 })
             }
             .width('100%')
@@ -199,7 +200,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -208,7 +209,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
   }
 
   @Builder
@@ -219,8 +220,8 @@ export struct CalendarPage {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor('#E5E7EB')
-          .fontColor('#111827')
+          .backgroundColor(AppColors.GRAY_200)
+          .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
             this.pickerYear = this.pickerYear - 1
@@ -231,7 +232,7 @@ export struct CalendarPage {
         Text(this.pickerYear.toString() + '年')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#111827')
+          .fontColor(AppColors.GRAY_900)
 
         Blank()
 
@@ -239,8 +240,8 @@ export struct CalendarPage {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor('#E5E7EB')
-          .fontColor('#111827')
+          .backgroundColor(AppColors.GRAY_200)
+          .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
             this.pickerYear = this.pickerYear + 1
@@ -257,9 +258,9 @@ export struct CalendarPage {
               .height(42)
               .fontSize(15)
               .fontWeight(this.pickerYear === this.currentYear && month === this.currentMonth ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.pickerYear === this.currentYear && month === this.currentMonth ? '#FFFFFF' : '#111827')
+              .fontColor(this.pickerYear === this.currentYear && month === this.currentMonth ? AppColors.WHITE : AppColors.GRAY_900)
               .textAlign(TextAlign.Center)
-              .backgroundColor(this.pickerYear === this.currentYear && month === this.currentMonth ? this.themeColor : '#F9FAFB')
+              .backgroundColor(this.pickerYear === this.currentYear && month === this.currentMonth ? this.themeColor : AppColors.GRAY_50)
               .borderRadius(12)
               .onClick(() => {
                 this.selectMonth(this.pickerYear, month)
@@ -274,7 +275,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#F9FAFB')
+    .backgroundColor(AppColors.GRAY_50)
     .borderRadius(14)
     .margin({ bottom: 16 })
     .transition({
@@ -296,7 +297,7 @@ export struct CalendarPage {
       if (day.itemCount > 0) {
         Text(day.itemCount.toString() + '项')
           .fontSize(10)
-          .fontColor(!day.isCurrentMonth ? '#9CA3AF' : (day.isSelected ? '#FFFFFF' : this.themeColor))
+          .fontColor(!day.isCurrentMonth ? AppColors.GRAY_400 : (day.isSelected ? AppColors.WHITE : this.themeColor))
           .margin({ top: 2 })
       } else {
         Text('')
@@ -307,7 +308,7 @@ export struct CalendarPage {
       if (day.doneCount > 0) {
         Text(day.doneCount.toString() + '完成')
           .fontSize(9)
-          .fontColor(!day.isCurrentMonth ? '#9CA3AF' : (day.isSelected ? '#FFFFFF' : '#22C55E'))
+          .fontColor(!day.isCurrentMonth ? AppColors.GRAY_400 : (day.isSelected ? AppColors.WHITE : AppColors.GREEN))
           .margin({ top: 1 })
       } else {
         Text('')
@@ -321,7 +322,7 @@ export struct CalendarPage {
     .backgroundColor(this.getDayBackgroundColor(day))
     .border({
       width: day.isToday && day.isCurrentMonth ? 2 : 0,
-      color: day.isSelected ? '#FFFFFF' : '#4F7CFF',
+      color: day.isSelected ? AppColors.WHITE : AppColors.BLUE,
       style: BorderStyle.Solid
     })
     .borderRadius(12)
@@ -346,7 +347,7 @@ export struct CalendarPage {
 
         Text(item.type)
           .fontSize(12)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ top: 4 })
       }
       .width(82)
@@ -357,14 +358,14 @@ export struct CalendarPage {
           Text(item.title)
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor(item.done ? '#9CA3AF' : '#111827')
+            .fontColor(item.done ? AppColors.GRAY_400 : AppColors.GRAY_900)
             .layoutWeight(1)
 
           if (item.type !== '便签') {
             Text(item.done ? '已完成' : '未完成')
               .fontSize(12)
-              .fontColor(item.done ? '#22C55E' : '#EF4444')
-              .backgroundColor(item.done ? '#DCFCE7' : '#FEE2E2')
+              .fontColor(item.done ? AppColors.GREEN : AppColors.RED)
+              .backgroundColor(item.done ? AppColors.GREEN_100 : AppColors.RED_100)
               .padding({ left: 8, right: 8, top: 4, bottom: 4 })
               .borderRadius(8)
           }
@@ -373,13 +374,13 @@ export struct CalendarPage {
 
         Text(item.description)
           .fontSize(13)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ top: 6 })
 
         if (item.done && item.type === '计划') {
           Text('该计划已在计划页标记完成')
             .fontSize(12)
-            .fontColor('#22C55E')
+            .fontColor(AppColors.GREEN)
             .margin({ top: 6 })
         }
       }
@@ -388,7 +389,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(item.done ? '#F0FDF4' : '#F9FAFB')
+    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }
@@ -598,23 +599,23 @@ export struct CalendarPage {
 
   getDayTextColor(day: CalendarDay): string {
     if (!day.isCurrentMonth) {
-      return '#9CA3AF'
+      return AppColors.GRAY_400
     }
 
     if (day.isSelected) {
-      return '#FFFFFF'
+      return AppColors.WHITE
     }
 
     if (day.isToday) {
-      return '#4F7CFF'
+      return AppColors.BLUE
     }
 
-    return '#111827'
+    return AppColors.GRAY_900
   }
 
   getDayBackgroundColor(day: CalendarDay): string {
     if (!day.isCurrentMonth) {
-      return '#F3F4F6'
+      return AppColors.GRAY_100
     }
 
     if (day.isSelected) {
@@ -622,10 +623,10 @@ export struct CalendarPage {
     }
 
     if (day.itemCount > 0) {
-      return '#EEF2FF'
+      return AppColors.INDIGO_50
     }
 
-    return '#F9FAFB'
+    return AppColors.GRAY_50
   }
 
   getMonthPickerList(): number[] {

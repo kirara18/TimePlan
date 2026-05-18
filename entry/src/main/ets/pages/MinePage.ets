@@ -5,10 +5,11 @@ import { SettingItem } from '../components/SettingItem'
 import { getToday } from '../utils/DateUtil'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY, NOTES_KEY as PLAN_NOTES_KEY, NOTE_NEXT_ID_KEY as PLAN_NOTE_NEXT_ID_KEY, HABITS_KEY as PLAN_HABITS_KEY, HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY, THEME_KEY as PLAN_THEME_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { AppColors } from '../utils/AppColors'
 
 @Component
 export struct MinePage {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
   onThemeChange: (color: string) => void = (color: string) => {}
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
@@ -52,19 +53,19 @@ export struct MinePage {
         Text('我的')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1F2937')
+          .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 20 })
 
         Column() {
           Text('鸿蒙全时计划 App')
             .fontSize(22)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 8 })
 
           Text('日历汇总计划、便签、打卡，支持本地存储和主题切换')
             .fontSize(15)
-            .fontColor('#6B7280')
+            .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 10 })
 
           Text(this.operationTip)
@@ -73,7 +74,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(20)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 16 })
         .alignItems(HorizontalAlign.Start)
@@ -82,7 +83,7 @@ export struct MinePage {
           Text('详细统计')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           SettingItem({ title: '待办任务', value: this.taskCount.toString() + ' 条' })
@@ -94,7 +95,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 16 })
 
@@ -102,7 +103,7 @@ export struct MinePage {
           Text('应用设置')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           SettingItem({ title: '主题设置', value: this.themeMode })
@@ -126,7 +127,7 @@ export struct MinePage {
             .height(44)
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .backgroundColor('#EF4444')
+            .backgroundColor(AppColors.RED)
             .borderRadius(12)
             .margin({ bottom: 4 })
             .onClick(() => {
@@ -135,7 +136,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -144,7 +145,7 @@ export struct MinePage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
   }
 
   startAutoRefresh(): void {
@@ -292,12 +293,12 @@ export struct MinePage {
 
   getThemeColorByMode(mode: string): string {
     if (mode === '清新绿色') {
-      return '#22C55E'
+      return AppColors.GREEN
     }
     if (mode === '活力红色') {
-      return '#EF4444'
+      return AppColors.RED
     }
-    return '#4F7CFF'
+    return AppColors.BLUE
   }
 
   async saveTheme(): Promise<void> {

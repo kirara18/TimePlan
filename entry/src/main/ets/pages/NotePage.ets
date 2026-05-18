@@ -5,10 +5,11 @@ import { StatBox } from '../components/StatBox'
 import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, NOTES_KEY as PLAN_NOTES_KEY, NOTE_NEXT_ID_KEY as PLAN_NOTE_NEXT_ID_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { AppColors } from '../utils/AppColors'
 
 @Component
 export struct NotePage {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
 
@@ -64,12 +65,12 @@ export struct NotePage {
         Text('便签')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1F2937')
+          .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
         Text('建立便签时可以填写日期与时间')
           .fontSize(15)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
 
         Text(this.transferTip)
@@ -80,7 +81,7 @@ export struct NotePage {
         TextInput({ text: this.noteSearchText, placeholder: '搜索便签标题、内容或分类...' })
           .width('100%')
           .height(44)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 20 })
@@ -92,7 +93,7 @@ export struct NotePage {
           Text('便签概览')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 14 })
 
           Row() {
@@ -105,7 +106,7 @@ export struct NotePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -129,13 +130,13 @@ export struct NotePage {
             Text('新建便签')
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#111827')
+              .fontColor(AppColors.GRAY_900)
               .margin({ bottom: 12 })
 
             TextInput({ text: this.noteTitle, placeholder: '请输入便签标题' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -146,7 +147,7 @@ export struct NotePage {
             TextInput({ text: this.noteContent, placeholder: '请输入便签内容' })
               .width('100%')
               .height(90)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -157,7 +158,7 @@ export struct NotePage {
             TextInput({ text: this.noteCategory, placeholder: '请输入分类，例如：学习 / 项目 / 生活' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -168,7 +169,7 @@ export struct NotePage {
             TextInput({ text: this.noteDate, placeholder: '请输入日期，例如：2026-05-17 或 19' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -180,7 +181,7 @@ export struct NotePage {
               TextInput({ text: this.noteStartTime, placeholder: '开始 09:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ right: 6 })
@@ -191,7 +192,7 @@ export struct NotePage {
               TextInput({ text: this.noteEndTime, placeholder: '结束 10:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ left: 6 })
@@ -207,7 +208,7 @@ export struct NotePage {
               .height(44)
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .backgroundColor('#22C55E')
+              .backgroundColor(AppColors.GREEN)
               .borderRadius(12)
               .onClick(() => {
                 this.addNote()
@@ -215,7 +216,7 @@ export struct NotePage {
           }
           .width('100%')
           .padding(18)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(18)
           .margin({ bottom: 18 })
         }
@@ -224,14 +225,14 @@ export struct NotePage {
           Text('便签列表')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           if (this.getFilteredNotes().length === 0) {
             Column() {
               Text('暂无匹配便签')
                 .fontSize(16)
-                .fontColor('#9CA3AF')
+                .fontColor(AppColors.GRAY_400)
                 .margin({ top: 20, bottom: 20 })
             }
             .width('100%')
@@ -244,7 +245,7 @@ export struct NotePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -253,7 +254,7 @@ export struct NotePage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
   }
 
   @Builder
@@ -263,13 +264,13 @@ export struct NotePage {
         Text(note.title)
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#111827')
+          .fontColor(AppColors.GRAY_900)
           .layoutWeight(1)
 
         Text('#' + note.category)
           .fontSize(12)
           .fontColor(this.themeColor)
-          .backgroundColor('#EEF2FF')
+          .backgroundColor(AppColors.INDIGO_50)
           .padding({ left: 8, right: 8, top: 4, bottom: 4 })
           .borderRadius(8)
       }
@@ -278,7 +279,7 @@ export struct NotePage {
 
       Text(note.content)
         .fontSize(14)
-        .fontColor('#6B7280')
+        .fontColor(AppColors.GRAY_500)
         .margin({ bottom: 8 })
 
       Text('日期：' + safeText(note.date, '未设置') + '    时间：' + safeText(note.startTime, '未设置') + ' - ' + safeText(note.endTime, '未设置'))
@@ -290,7 +291,7 @@ export struct NotePage {
         .width('100%')
         .height(36)
         .fontSize(13)
-        .backgroundColor('#EF4444')
+        .backgroundColor(AppColors.RED)
         .borderRadius(12)
         .onClick(() => {
           this.deleteNote(note.id)
@@ -298,7 +299,7 @@ export struct NotePage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#F9FAFB')
+    .backgroundColor(AppColors.GRAY_50)
     .borderRadius(12)
     .margin({ bottom: 10 })
     .alignItems(HorizontalAlign.Start)

@@ -5,10 +5,17 @@ import { StatBox } from '../components/StatBox'
 import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { AppColors } from '../utils/AppColors'
+
+interface CalendarSelectDay {
+  date: string
+  day: number
+  isCurrentMonth: boolean
+}
 
 @Component
 export struct PlanPage {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -24,6 +31,11 @@ export struct PlanPage {
   @State taskStartTime: string = ''
   @State taskEndTime: string = ''
   @State taskSearchText: string = ''
+
+  // 日期选择面板相关状态
+  @State showTaskDatePicker: boolean = false
+  @State pickerYear: number = 0
+  @State pickerMonth: number = 0
 
   @State taskNextId: number = 4
   @State tasks: TodoTask[] = [
@@ -60,6 +72,14 @@ export struct PlanPage {
   ]
 
   aboutToAppear(): void {
+    let now = new Date()
+    this.pickerYear = now.getFullYear()
+    this.pickerMonth = now.getMonth() + 1
+
+    if (this.taskDate.trim().length === 0) {
+      this.taskDate = getToday()
+    }
+
     this.initPreferencesAndLoad().then(() => {
       console.info('计划页数据加载完成')
     }).catch(() => {
@@ -73,18 +93,18 @@ export struct PlanPage {
         Text('计划')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#1F2937')
+          .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
-        Text('建立待办时填写日期、开始时间和结束时间')
+        Text('建立待办时选择日期，并填写开始时间和结束时间')
           .fontSize(15)
-          .fontColor('#6B7280')
+          .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 20 })
 
         TextInput({ text: this.taskSearchText, placeholder: '搜索待办任务...' })
           .width('100%')
           .height(44)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 20 })
@@ -96,7 +116,7 @@ export struct PlanPage {
           Text('任务概览')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 14 })
 
           Row() {
@@ -109,7 +129,7 @@ export struct PlanPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -123,8 +143,16 @@ export struct PlanPage {
           .margin({ bottom: 14 })
           .onClick(() => {
             this.showAddPanel = !this.showAddPanel
-            if (this.taskDate.trim().length === 0) {
-              this.taskDate = getToday()
+
+            if (this.showAddPanel) {
+              if (this.taskDate.trim().length === 0) {
+                this.taskDate = getToday()
+              }
+
+              this.pickerYear = this.getYearFromDate(this.taskDate)
+              this.pickerMonth = this.getMonthFromDate(this.taskDate)
+            } else {
+              this.showTaskDatePicker = false
             }
           })
 
@@ -133,13 +161,13 @@ export struct PlanPage {
             Text('新增待办任务')
               .fontSize(20)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#111827')
+              .fontColor(AppColors.GRAY_900)
               .margin({ bottom: 12 })
 
             TextInput({ text: this.taskTitle, placeholder: '请输入任务名称，例如：完成课程报告' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -150,7 +178,7 @@ export struct PlanPage {
             TextInput({ text: this.taskPriority, placeholder: '请输入优先级：高 / 中 / 低' })
               .width('100%')
               .height(44)
-              .backgroundColor('#F9FAFB')
+              .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -158,22 +186,57 @@ export struct PlanPage {
                 this.taskPriority = value
               })
 
-            TextInput({ text: this.taskDate, placeholder: '请输入日期，例如：2026-05-17 或 19' })
+            Column() {
+              Row() {
+                Column() {
+                  Text('任务日期')
+                    .fontSize(13)
+                    .fontColor(AppColors.GRAY_500)
+                    .margin({ bottom: 4 })
+
+                  Text(this.taskDate.length > 0 ? this.taskDate : '请选择日期')
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.taskDate.length > 0 ? AppColors.GRAY_900 : AppColors.GRAY_400)
+                }
+                .layoutWeight(1)
+                .alignItems(HorizontalAlign.Start)
+
+                Text(this.showTaskDatePicker ? '收起' : '选择')
+                  .fontSize(14)
+                  .fontColor(this.themeColor)
+                  .fontWeight(FontWeight.Bold)
+              }
               .width('100%')
-              .height(44)
-              .backgroundColor('#F9FAFB')
-              .borderRadius(12)
+              .height(56)
               .padding({ left: 12, right: 12 })
-              .margin({ bottom: 10 })
-              .onChange((value: string) => {
-                this.taskDate = value
+              .backgroundColor(AppColors.GRAY_50)
+              .borderRadius(12)
+              .onClick(() => {
+                let baseDate = this.taskDate.length > 0 ? this.taskDate : getToday()
+                this.pickerYear = this.getYearFromDate(baseDate)
+                this.pickerMonth = this.getMonthFromDate(baseDate)
+
+                animateTo({
+                  duration: 220,
+                  curve: Curve.EaseOut
+                }, () => {
+                  this.showTaskDatePicker = !this.showTaskDatePicker
+                })
               })
+
+              if (this.showTaskDatePicker) {
+                this.TaskDatePickerPanel()
+              }
+            }
+            .width('100%')
+            .margin({ bottom: 10 })
 
             Row() {
               TextInput({ text: this.taskStartTime, placeholder: '开始 09:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ right: 6 })
@@ -184,7 +247,7 @@ export struct PlanPage {
               TextInput({ text: this.taskEndTime, placeholder: '结束 10:00' })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#F9FAFB')
+                .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ left: 6 })
@@ -200,7 +263,7 @@ export struct PlanPage {
               .height(44)
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .backgroundColor('#22C55E')
+              .backgroundColor(AppColors.GREEN)
               .borderRadius(12)
               .onClick(() => {
                 this.addTask()
@@ -208,7 +271,7 @@ export struct PlanPage {
           }
           .width('100%')
           .padding(18)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppColors.WHITE)
           .borderRadius(18)
           .margin({ bottom: 18 })
         }
@@ -217,14 +280,14 @@ export struct PlanPage {
           Text('待办任务')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           if (this.getFilteredTasks().length === 0) {
             Column() {
               Text('暂无匹配任务')
                 .fontSize(16)
-                .fontColor('#9CA3AF')
+                .fontColor(AppColors.GRAY_400)
                 .margin({ top: 20, bottom: 20 })
             }
             .width('100%')
@@ -237,7 +300,7 @@ export struct PlanPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(AppColors.WHITE)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -246,7 +309,98 @@ export struct PlanPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F6F7FB')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
+  }
+
+  @Builder
+  TaskDatePickerPanel() {
+    Column() {
+      Row() {
+        Button('<')
+          .width(42)
+          .height(34)
+          .fontSize(16)
+          .backgroundColor(AppColors.GRAY_200)
+          .fontColor(AppColors.GRAY_900)
+          .borderRadius(10)
+          .onClick(() => {
+            this.goPreviousPickerMonth()
+          })
+
+        Blank()
+
+        Text(this.pickerYear.toString() + '年' + this.pickerMonth.toString() + '月')
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(AppColors.GRAY_900)
+
+        Blank()
+
+        Button('>')
+          .width(42)
+          .height(34)
+          .fontSize(16)
+          .backgroundColor(AppColors.GRAY_200)
+          .fontColor(AppColors.GRAY_900)
+          .borderRadius(10)
+          .onClick(() => {
+            this.goNextPickerMonth()
+          })
+      }
+      .width('100%')
+      .margin({ bottom: 12 })
+
+      Row() {
+        ForEach(this.getWeekTitles(), (item: string) => {
+          Text(item)
+            .width('14.28%')
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppColors.GRAY_500)
+            .textAlign(TextAlign.Center)
+        }, (item: string) => item)
+      }
+      .width('100%')
+      .margin({ bottom: 8 })
+
+      Grid() {
+        ForEach(this.getPickerDays(), (day: CalendarSelectDay) => {
+          GridItem() {
+            Text(day.day.toString())
+              .width('100%')
+              .height(34)
+              .fontSize(14)
+              .fontWeight(day.date === this.taskDate ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.getPickerDayTextColor(day))
+              .textAlign(TextAlign.Center)
+              .backgroundColor(day.date === this.taskDate ? this.themeColor : AppColors.WHITE)
+              .borderRadius(10)
+              .border({
+                width: day.date === getToday() && day.date !== this.taskDate ? 1 : 0,
+                color: AppColors.BLUE,
+                style: BorderStyle.Solid
+              })
+              .onClick(() => {
+                this.selectTaskDate(day.date)
+              })
+          }
+        }, (day: CalendarSelectDay) => day.date + '_' + day.isCurrentMonth.toString())
+      }
+      .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
+      .rowsGap(6)
+      .columnsGap(6)
+      .width('100%')
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor(AppColors.WHITE)
+    .borderRadius(14)
+    .margin({ top: 10 })
+    .transition({
+      type: TransitionType.All,
+      opacity: 0,
+      translate: { x: 0, y: -10 }
+    })
   }
 
   @Builder
@@ -255,14 +409,14 @@ export struct PlanPage {
       Row() {
         Text(task.done ? '✓' : '○')
           .fontSize(24)
-          .fontColor(task.done ? '#22C55E' : '#9CA3AF')
+          .fontColor(task.done ? AppColors.GREEN : AppColors.GRAY_400)
           .margin({ right: 10 })
 
         Column() {
           Text(task.title)
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor(task.done ? '#9CA3AF' : '#111827')
+            .fontColor(task.done ? AppColors.GRAY_400 : AppColors.GRAY_900)
 
           Text('日期：' + safeText(task.date, '未设置') + '    时间：' + safeText(task.startTime, '未设置') + ' - ' + safeText(task.endTime, '未设置'))
             .fontSize(13)
@@ -271,7 +425,7 @@ export struct PlanPage {
 
           Text('优先级：' + task.priority + '    状态：' + (task.done ? '已完成' : '未完成'))
             .fontSize(12)
-            .fontColor('#6B7280')
+            .fontColor(AppColors.GRAY_500)
             .margin({ top: 4 })
         }
         .layoutWeight(1)
@@ -285,7 +439,7 @@ export struct PlanPage {
           .layoutWeight(1)
           .height(38)
           .fontSize(14)
-          .backgroundColor(task.done ? '#9CA3AF' : '#22C55E')
+          .backgroundColor(task.done ? AppColors.GRAY_400 : AppColors.GREEN)
           .borderRadius(12)
           .margin({ right: 8 })
           .onClick(() => {
@@ -296,7 +450,7 @@ export struct PlanPage {
           .layoutWeight(1)
           .height(38)
           .fontSize(14)
-          .backgroundColor('#EF4444')
+          .backgroundColor(AppColors.RED)
           .borderRadius(12)
           .margin({ left: 8 })
           .onClick(() => {
@@ -307,7 +461,7 @@ export struct PlanPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(task.done ? '#F0FDF4' : '#F9FAFB')
+    .backgroundColor(task.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }
@@ -417,6 +571,7 @@ export struct PlanPage {
     this.taskDate = getToday()
     this.taskStartTime = ''
     this.taskEndTime = ''
+    this.showTaskDatePicker = false
     this.showAddPanel = false
 
     this.saveTasks().then(() => {
@@ -475,4 +630,130 @@ export struct PlanPage {
     }).length
   }
 
+  getWeekTitles(): string[] {
+    return ['日', '一', '二', '三', '四', '五', '六']
+  }
+
+  getPickerDays(): CalendarSelectDay[] {
+    let list: CalendarSelectDay[] = []
+
+    let firstWeek = new Date(this.pickerYear, this.pickerMonth - 1, 1).getDay()
+    let daysInMonth = new Date(this.pickerYear, this.pickerMonth, 0).getDate()
+
+    let prevYear = this.pickerMonth === 1 ? this.pickerYear - 1 : this.pickerYear
+    let prevMonth = this.pickerMonth === 1 ? 12 : this.pickerMonth - 1
+    let nextYear = this.pickerMonth === 12 ? this.pickerYear + 1 : this.pickerYear
+    let nextMonth = this.pickerMonth === 12 ? 1 : this.pickerMonth + 1
+    let daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate()
+
+    let realCellCount = firstWeek + daysInMonth
+    let rowCount = Math.ceil(realCellCount / 7)
+
+    if (rowCount < 5) {
+      rowCount = 5
+    }
+
+    let totalCells = rowCount * 7
+
+    for (let i = 0; i < totalCells; i++) {
+      let finalYear = this.pickerYear
+      let finalMonth = this.pickerMonth
+      let finalDay = 1
+      let isCurrent = true
+
+      if (i < firstWeek) {
+        finalYear = prevYear
+        finalMonth = prevMonth
+        finalDay = daysInPrevMonth - firstWeek + i + 1
+        isCurrent = false
+      } else if (i >= firstWeek + daysInMonth) {
+        finalYear = nextYear
+        finalMonth = nextMonth
+        finalDay = i - firstWeek - daysInMonth + 1
+        isCurrent = false
+      } else {
+        finalDay = i - firstWeek + 1
+        isCurrent = true
+      }
+
+      list.push({
+        date: this.formatPickerDate(finalYear, finalMonth, finalDay),
+        day: finalDay,
+        isCurrentMonth: isCurrent
+      })
+    }
+
+    return list
+  }
+
+  selectTaskDate(dateText: string): void {
+    this.taskDate = dateText
+    this.pickerYear = this.getYearFromDate(dateText)
+    this.pickerMonth = this.getMonthFromDate(dateText)
+
+    animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      this.showTaskDatePicker = false
+    })
+  }
+
+  goPreviousPickerMonth(): void {
+    if (this.pickerMonth === 1) {
+      this.pickerYear = this.pickerYear - 1
+      this.pickerMonth = 12
+    } else {
+      this.pickerMonth = this.pickerMonth - 1
+    }
+  }
+
+  goNextPickerMonth(): void {
+    if (this.pickerMonth === 12) {
+      this.pickerYear = this.pickerYear + 1
+      this.pickerMonth = 1
+    } else {
+      this.pickerMonth = this.pickerMonth + 1
+    }
+  }
+
+  getPickerDayTextColor(day: CalendarSelectDay): string {
+    if (day.date === this.taskDate) {
+      return AppColors.WHITE
+    }
+
+    if (!day.isCurrentMonth) {
+      return AppColors.GRAY_400
+    }
+
+    if (day.date === getToday()) {
+      return AppColors.BLUE
+    }
+
+    return AppColors.GRAY_900
+  }
+
+  getYearFromDate(dateText: string): number {
+    if (dateText.length < 7) {
+      let now = new Date()
+      return now.getFullYear()
+    }
+
+    return Number(dateText.substring(0, 4))
+  }
+
+  getMonthFromDate(dateText: string): number {
+    if (dateText.length < 7) {
+      let now = new Date()
+      return now.getMonth() + 1
+    }
+
+    return Number(dateText.substring(5, 7))
+  }
+
+  formatPickerDate(year: number, month: number, day: number): string {
+    let monthText = month < 10 ? '0' + month.toString() : month.toString()
+    let dayText = day < 10 ? '0' + day.toString() : day.toString()
+    return year.toString() + '-' + monthText + '-' + dayText
+  }
 }

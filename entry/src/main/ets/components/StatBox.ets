@@ -1,6 +1,7 @@
+import { AppColors } from '../utils/AppColors'
 @Component
 export struct StatBox {
-  @Prop themeColor: string = '#4F7CFF'
+  @Prop themeColor: string = AppColors.BLUE
   @Prop title: string = ''
   @Prop value: string = ''
 
@@ -13,13 +14,13 @@ export struct StatBox {
 
       Text(this.title)
         .fontSize(13)
-        .fontColor('#6B7280')
+        .fontColor(AppColors.GRAY_500)
         .margin({ top: 4 })
     }
     .width('30%')
     .height(72)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor('#F3F6FF')
+    .backgroundColor(AppColors.BLUE_50)
     .borderRadius(14)
   }
 }

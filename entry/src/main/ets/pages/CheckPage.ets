@@ -2,6 +2,9 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { HabitData } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
+import { STORE_NAME as TIME_PLAN_STORE_NAME, HABITS_KEY as PLAN_HABITS_KEY, HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY } from '../utils/StoreConstants'
+import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 
 @Component
 export struct CheckPage {
@@ -10,9 +13,9 @@ export struct CheckPage {
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
 
-  readonly STORE_NAME: string = 'time_plan_store'
-  readonly HABITS_KEY: string = 'habit_items'
-  readonly HABIT_NEXT_ID_KEY: string = 'habit_items_next_id'
+  readonly STORE_NAME: string = TIME_PLAN_STORE_NAME
+  readonly HABITS_KEY: string = PLAN_HABITS_KEY
+  readonly HABIT_NEXT_ID_KEY: string = PLAN_HABIT_NEXT_ID_KEY
 
   @State showAddPanel: boolean = false
   @State habitSearchText: string = ''
@@ -131,7 +134,7 @@ export struct CheckPage {
           .onClick(() => {
             this.showAddPanel = !this.showAddPanel
             if (this.habitDate.trim().length === 0) {
-              this.habitDate = this.getToday()
+              this.habitDate = getToday()
             }
           })
 
@@ -287,7 +290,7 @@ export struct CheckPage {
             .fontColor('#6B7280')
             .margin({ top: 4 })
 
-          Text('日期：' + this.safeText(habit.date, '未设置') + '    时间：' + this.safeText(habit.startTime, '未设置') + ' - ' + this.safeText(habit.endTime, '未设置'))
+          Text('日期：' + safeText(habit.date, '未设置') + '    时间：' + safeText(habit.startTime, '未设置') + ' - ' + safeText(habit.endTime, '未设置'))
             .fontSize(13)
             .fontColor(this.themeColor)
             .margin({ top: 6 })
@@ -363,9 +366,7 @@ export struct CheckPage {
       return
     }
 
-    this.dataPreferences = await preferences.getPreferences(this.context, {
-      name: this.STORE_NAME
-    })
+    this.dataPreferences = await getTimePlanPreferences(this.context)
   }
 
   async loadHabits(): Promise<void> {
@@ -401,7 +402,7 @@ export struct CheckPage {
       let finalCheckedDates: string[] = []
       if (item.checkedDates !== undefined && item.checkedDates !== null) {
         item.checkedDates.forEach((dateText: string) => {
-          let normalized = this.normalizeDateInput(dateText)
+          let normalized = normalizeDateInput(dateText)
           if (finalCheckedDates.indexOf(normalized) < 0) {
             finalCheckedDates.push(normalized)
           }
@@ -409,7 +410,7 @@ export struct CheckPage {
       }
 
       if (item.checkedDate !== undefined && item.checkedDate !== null && item.checkedDate.length > 0) {
-        let normalizedCheckedDate = this.normalizeDateInput(item.checkedDate)
+        let normalizedCheckedDate = normalizeDateInput(item.checkedDate)
         if (finalCheckedDates.indexOf(normalizedCheckedDate) < 0) {
           finalCheckedDates.push(normalizedCheckedDate)
         }
@@ -423,15 +424,15 @@ export struct CheckPage {
       result.push({
         id: item.id,
         title: item.title,
-        target: this.safeText(item.target, '每日坚持完成'),
+        target: safeText(item.target, '每日坚持完成'),
         days: finalDays,
         targetDays: finalTargetDays,
-        date: this.normalizeDateInput(this.safeText(item.date, this.getToday())),
-        startTime: this.safeText(item.startTime, '未设置'),
-        endTime: this.safeText(item.endTime, '未设置'),
-        checkedDate: this.safeText(item.checkedDate, ''),
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
+        checkedDate: safeText(item.checkedDate, ''),
         checkedDates: finalCheckedDates,
-        createDate: this.safeText(item.createDate, this.getToday())
+        createDate: safeText(item.createDate, getToday())
       })
     })
 
@@ -481,12 +482,12 @@ export struct CheckPage {
       target: this.habitTarget.trim().length === 0 ? '每日坚持完成' : this.habitTarget,
       days: 0,
       targetDays: targetDays,
-      date: this.normalizeDateInput(this.habitDate),
+      date: normalizeDateInput(this.habitDate),
       startTime: this.habitStartTime.trim().length === 0 ? '未设置' : this.habitStartTime,
       endTime: this.habitEndTime.trim().length === 0 ? '未设置' : this.habitEndTime,
       checkedDate: '',
       checkedDates: [],
-      createDate: this.getToday()
+      createDate: getToday()
     }
 
     this.habits = [newHabit, ...this.habits]
@@ -495,7 +496,7 @@ export struct CheckPage {
     this.habitTitle = ''
     this.habitTarget = ''
     this.habitTargetDaysText = ''
-    this.habitDate = this.getToday()
+    this.habitDate = getToday()
     this.habitStartTime = ''
     this.habitEndTime = ''
     this.showAddPanel = false
@@ -517,7 +518,7 @@ export struct CheckPage {
   }
 
   toggleHabit(id: number): void {
-    let today = this.getToday()
+    let today = getToday()
     let newHabits: HabitData[] = []
 
     this.habits.forEach((item: HabitData) => {
@@ -595,9 +596,9 @@ export struct CheckPage {
 
   isCheckedToday(habit: HabitData): boolean {
     if (habit.checkedDates !== undefined && habit.checkedDates !== null) {
-      return habit.checkedDates.indexOf(this.getToday()) >= 0
+      return habit.checkedDates.indexOf(getToday()) >= 0
     }
-    return habit.checkedDate === this.getToday()
+    return habit.checkedDate === getToday()
   }
 
   getTodayCheckedCount(): number {
@@ -640,89 +641,4 @@ export struct CheckPage {
     return this.getHabitProgressValue(habit).toString() + '%'
   }
 
-  normalizeDateInput(value: string): string {
-    let raw = this.safeText(value, '').trim()
-
-    if (raw.length === 0 || raw === '未设置') {
-      return this.getToday()
-    }
-
-    if (raw === '今天') {
-      return this.getToday()
-    }
-
-    if (raw === '明天') {
-      return this.addDays(this.getToday(), 1)
-    }
-
-    raw = raw.replace('年', '-')
-    raw = raw.replace('月', '-')
-    raw = raw.replace('日', '')
-    raw = raw.replace('号', '')
-    raw = raw.replace('/', '-')
-    raw = raw.replace('.', '-')
-
-    let parts = raw.split('-')
-
-    if (parts.length === 1) {
-      let day = Number(parts[0])
-      if (!isNaN(day) && day >= 1 && day <= 31) {
-        let now = new Date()
-        return this.formatDate(now.getFullYear(), now.getMonth() + 1, Math.floor(day))
-      }
-    }
-
-    if (parts.length === 2) {
-      let month = Number(parts[0])
-      let day = Number(parts[1])
-      if (!isNaN(month) && !isNaN(day)) {
-        let now = new Date()
-        return this.formatDate(now.getFullYear(), Math.floor(month), Math.floor(day))
-      }
-    }
-
-    if (parts.length >= 3) {
-      let year = Number(parts[0])
-      let month = Number(parts[1])
-      let day = Number(parts[2])
-      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        return this.formatDate(Math.floor(year), Math.floor(month), Math.floor(day))
-      }
-    }
-
-    return this.getToday()
-  }
-
-  addDays(dateText: string, count: number): string {
-    let year = Number(dateText.substring(0, 4))
-    let month = Number(dateText.substring(5, 7))
-    let day = Number(dateText.substring(8, 10))
-    let date = new Date(year, month - 1, day + count)
-    return this.formatDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
-  }
-
-  formatDate(year: number, month: number, day: number): string {
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
-
-  safeText(value: string, defaultValue: string): string {
-    if (value === undefined || value === null || value.length === 0) {
-      return defaultValue
-    }
-    return value
-  }
-
-  getToday(): string {
-    let date = new Date()
-    let year = date.getFullYear()
-    let month = date.getMonth() + 1
-    let day = date.getDate()
-
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
 }

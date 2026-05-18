@@ -2,6 +2,9 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask, NoteItem, HabitData } from '../model/AppModels'
 import { SettingItem } from '../components/SettingItem'
+import { getToday } from '../utils/DateUtil'
+import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY, NOTES_KEY as PLAN_NOTES_KEY, NOTE_NEXT_ID_KEY as PLAN_NOTE_NEXT_ID_KEY, HABITS_KEY as PLAN_HABITS_KEY, HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY, THEME_KEY as PLAN_THEME_KEY } from '../utils/StoreConstants'
+import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 
 @Component
 export struct MinePage {
@@ -11,15 +14,15 @@ export struct MinePage {
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
 
-  readonly STORE_NAME: string = 'time_plan_store'
+  readonly STORE_NAME: string = TIME_PLAN_STORE_NAME
 
-  readonly TASKS_KEY: string = 'plan_tasks'
-  readonly TASK_NEXT_ID_KEY: string = 'plan_tasks_next_id'
-  readonly NOTES_KEY: string = 'note_items'
-  readonly NOTE_NEXT_ID_KEY: string = 'note_items_next_id'
-  readonly HABITS_KEY: string = 'habit_items'
-  readonly HABIT_NEXT_ID_KEY: string = 'habit_items_next_id'
-  readonly THEME_KEY: string = 'app_theme_mode'
+  readonly TASKS_KEY: string = PLAN_TASKS_KEY
+  readonly TASK_NEXT_ID_KEY: string = PLAN_TASK_NEXT_ID_KEY
+  readonly NOTES_KEY: string = PLAN_NOTES_KEY
+  readonly NOTE_NEXT_ID_KEY: string = PLAN_NOTE_NEXT_ID_KEY
+  readonly HABITS_KEY: string = PLAN_HABITS_KEY
+  readonly HABIT_NEXT_ID_KEY: string = PLAN_HABIT_NEXT_ID_KEY
+  readonly THEME_KEY: string = PLAN_THEME_KEY
 
   @State taskCount: number = 0
   @State doneTaskCount: number = 0
@@ -172,9 +175,7 @@ export struct MinePage {
       return
     }
 
-    this.dataPreferences = await preferences.getPreferences(this.context, {
-      name: this.STORE_NAME
-    })
+    this.dataPreferences = await getTimePlanPreferences(this.context)
   }
 
   async loadTheme(): Promise<void> {
@@ -258,7 +259,7 @@ export struct MinePage {
         let list = JSON.parse(value) as HabitData[]
         this.habitCount = list.length
         this.todayCheckedHabitCount = list.filter((item: HabitData) => {
-          return item.checkedDate === this.getToday()
+          return item.checkedDate === getToday()
         }).length
       } catch (err) {
         this.habitCount = 0
@@ -348,15 +349,4 @@ export struct MinePage {
     this.todayCheckedHabitCount = 0
   }
 
-  getToday(): string {
-    let date = new Date()
-    let year = date.getFullYear()
-    let month = date.getMonth() + 1
-    let day = date.getDate()
-
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
 }

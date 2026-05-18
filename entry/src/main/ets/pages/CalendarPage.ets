@@ -2,6 +2,9 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask, NoteItem, HabitData, CalendarItem, CalendarDay } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, NOTES_KEY as PLAN_NOTES_KEY, HABITS_KEY as PLAN_HABITS_KEY } from '../utils/StoreConstants'
+import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { safeText, getToday, formatDate, formatMonth, normalizeDateInput, getWeekTitles, getYearFromDate, getMonthFromDate, dateInList, dateToDayNumber, dayNumberToDate, buildMonthDays, SimpleCalendarDay } from '../utils/DateUtil'
 
 @Component
 export struct CalendarPage {
@@ -10,10 +13,10 @@ export struct CalendarPage {
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
 
-  readonly STORE_NAME: string = 'time_plan_store'
-  readonly TASKS_KEY: string = 'plan_tasks'
-  readonly NOTES_KEY: string = 'note_items'
-  readonly HABITS_KEY: string = 'habit_items'
+  readonly STORE_NAME: string = TIME_PLAN_STORE_NAME
+  readonly TASKS_KEY: string = PLAN_TASKS_KEY
+  readonly NOTES_KEY: string = PLAN_NOTES_KEY
+  readonly HABITS_KEY: string = PLAN_HABITS_KEY
 
   @State currentYear: number = 2026
   @State currentMonth: number = 5
@@ -21,13 +24,15 @@ export struct CalendarPage {
   @State allItems: CalendarItem[] = []
   @State calendarDays: CalendarDay[] = []
   @State operationTip: string = '点击日历中的日期，可查看当天详细安排'
+  @State showMonthPicker: boolean = false
+  @State pickerYear: number = 2026
   refreshTimerId: number = -1
 
   aboutToAppear(): void {
     let now = new Date()
     this.currentYear = now.getFullYear()
     this.currentMonth = now.getMonth() + 1
-    this.selectedDate = this.getToday()
+    this.selectedDate = getToday()
 
     this.initPreferencesAndLoad().then(() => {
       this.updateCalendarDays()
@@ -78,6 +83,21 @@ export struct CalendarPage {
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
               .fontColor('#111827')
+              .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+              .borderRadius(10)
+              .backgroundColor('#F3F4F6')
+              .onClick(() => {
+                this.pickerYear = this.currentYear
+
+                animateTo({
+                  duration: 250,
+                  curve: Curve.EaseOut
+                }, () => {
+                  this.showMonthPicker = !this.showMonthPicker
+                })
+
+                this.operationTip = !this.showMonthPicker ? '请选择年份和月份' : '点击日历中的日期，可查看当天详细安排'
+              })
 
             Blank()
 
@@ -94,8 +114,12 @@ export struct CalendarPage {
           .width('100%')
           .margin({ bottom: 16 })
 
+          if (this.showMonthPicker) {
+            this.MonthPickerPanel()
+          }
+
           Row() {
-            ForEach(this.getWeekTitles(), (item: string) => {
+            ForEach(getWeekTitles(), (item: string) => {
               Text(item)
                 .width('14.28%')
                 .fontSize(13)
@@ -112,7 +136,7 @@ export struct CalendarPage {
               GridItem() {
                 this.CalendarDayCell(day)
               }
-            }, (day: CalendarDay) => day.date + '_' + day.itemCount.toString() + '_' + day.doneCount.toString() + '_' + day.isSelected.toString())
+            }, (day: CalendarDay) => day.date + '_' + day.itemCount.toString() + '_' + day.doneCount.toString() + '_' + day.isSelected.toString() + '_' + day.isCurrentMonth.toString() )
           }
           .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
           .rowsGap(8)
@@ -188,6 +212,79 @@ export struct CalendarPage {
   }
 
   @Builder
+  MonthPickerPanel() {
+    Column() {
+      Row() {
+        Button('<')
+          .width(42)
+          .height(34)
+          .fontSize(16)
+          .backgroundColor('#E5E7EB')
+          .fontColor('#111827')
+          .borderRadius(10)
+          .onClick(() => {
+            this.pickerYear = this.pickerYear - 1
+          })
+
+        Blank()
+
+        Text(this.pickerYear.toString() + '年')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#111827')
+
+        Blank()
+
+        Button('>')
+          .width(42)
+          .height(34)
+          .fontSize(16)
+          .backgroundColor('#E5E7EB')
+          .fontColor('#111827')
+          .borderRadius(10)
+          .onClick(() => {
+            this.pickerYear = this.pickerYear + 1
+          })
+      }
+      .width('100%')
+      .margin({ bottom: 12 })
+
+      Grid() {
+        ForEach(this.getMonthPickerList(), (month: number) => {
+          GridItem() {
+            Text(month.toString() + '月')
+              .width('100%')
+              .height(42)
+              .fontSize(15)
+              .fontWeight(this.pickerYear === this.currentYear && month === this.currentMonth ? FontWeight.Bold : FontWeight.Normal)
+              .fontColor(this.pickerYear === this.currentYear && month === this.currentMonth ? '#FFFFFF' : '#111827')
+              .textAlign(TextAlign.Center)
+              .backgroundColor(this.pickerYear === this.currentYear && month === this.currentMonth ? this.themeColor : '#F9FAFB')
+              .borderRadius(12)
+              .onClick(() => {
+                this.selectMonth(this.pickerYear, month)
+              })
+          }
+        }, (month: number) => month.toString())
+      }
+      .columnsTemplate('1fr 1fr 1fr 1fr')
+      .rowsGap(10)
+      .columnsGap(10)
+      .width('100%')
+    }
+    .width('100%')
+    .padding(14)
+    .backgroundColor('#F9FAFB')
+    .borderRadius(14)
+    .margin({ bottom: 16 })
+    .transition({
+      type: TransitionType.All,
+      opacity: 0,
+      translate: { x: 0, y: -12 }
+    })
+  }
+
+  @Builder
   CalendarDayCell(day: CalendarDay) {
     Column() {
       Text(day.day.toString())
@@ -199,7 +296,7 @@ export struct CalendarPage {
       if (day.itemCount > 0) {
         Text(day.itemCount.toString() + '项')
           .fontSize(10)
-          .fontColor(day.isSelected ? '#FFFFFF' : this.themeColor)
+          .fontColor(!day.isCurrentMonth ? '#9CA3AF' : (day.isSelected ? '#FFFFFF' : this.themeColor))
           .margin({ top: 2 })
       } else {
         Text('')
@@ -210,12 +307,7 @@ export struct CalendarPage {
       if (day.doneCount > 0) {
         Text(day.doneCount.toString() + '完成')
           .fontSize(9)
-          .fontColor(day.isSelected ? '#FFFFFF' : '#22C55E')
-          .margin({ top: 1 })
-      } else if (day.isToday) {
-        Text('今天')
-          .fontSize(9)
-          .fontColor(day.isSelected ? '#FFFFFF' : '#22C55E')
+          .fontColor(!day.isCurrentMonth ? '#9CA3AF' : (day.isSelected ? '#FFFFFF' : '#22C55E'))
           .margin({ top: 1 })
       } else {
         Text('')
@@ -226,13 +318,18 @@ export struct CalendarPage {
     .width('100%')
     .height(66)
     .justifyContent(FlexAlign.Start)
-    .backgroundColor(day.isSelected ? this.themeColor : (day.itemCount > 0 ? '#EEF2FF' : '#F9FAFB'))
+    .backgroundColor(this.getDayBackgroundColor(day))
+    .border({
+      width: day.isToday && day.isCurrentMonth ? 2 : 0,
+      color: day.isSelected ? '#FFFFFF' : '#4F7CFF',
+      style: BorderStyle.Solid
+    })
     .borderRadius(12)
-    .opacity(day.isCurrentMonth ? 1 : 0.35)
+    .opacity(1)
     .onClick(() => {
       this.selectedDate = day.date
-      this.currentYear = this.getYearFromDate(day.date)
-      this.currentMonth = this.getMonthFromDate(day.date)
+      this.currentYear = getYearFromDate(day.date)
+      this.currentMonth = getMonthFromDate(day.date)
       this.updateCalendarDays()
       this.operationTip = '已选择：' + day.date
     })
@@ -306,9 +403,7 @@ export struct CalendarPage {
       return
     }
 
-    this.dataPreferences = await preferences.getPreferences(this.context, {
-      name: this.STORE_NAME
-    })
+    this.dataPreferences = await getTimePlanPreferences(this.context)
   }
 
   startAutoRefresh(): void {
@@ -334,9 +429,7 @@ export struct CalendarPage {
   }
 
   async loadCalendarItems(): Promise<void> {
-    this.dataPreferences = await preferences.getPreferences(this.context, {
-      name: this.STORE_NAME
-    })
+    this.dataPreferences = await getTimePlanPreferences(this.context)
 
     if (this.dataPreferences === null) {
       return
@@ -353,10 +446,10 @@ export struct CalendarPage {
             id: task.id,
             type: '计划',
             title: task.title,
-            date: this.normalizeDateInput(this.safeText(task.date, this.getToday())),
-            startTime: this.safeText(task.startTime, '未设置'),
-            endTime: this.safeText(task.endTime, '未设置'),
-            description: '优先级：' + this.safeText(task.priority, '中') + '，状态：' + (task.done ? '已完成' : '未完成'),
+            date: normalizeDateInput(safeText(task.date, getToday()), this.currentYear, this.currentMonth),
+            startTime: safeText(task.startTime, '未设置'),
+            endTime: safeText(task.endTime, '未设置'),
+            description: '优先级：' + safeText(task.priority, '中') + '，状态：' + (task.done ? '已完成' : '未完成'),
             done: task.done
           })
         })
@@ -374,10 +467,10 @@ export struct CalendarPage {
             id: note.id,
             type: '便签',
             title: note.title,
-            date: this.normalizeDateInput(this.safeText(note.date, this.getToday())),
-            startTime: this.safeText(note.startTime, '未设置'),
-            endTime: this.safeText(note.endTime, '未设置'),
-            description: this.safeText(note.content, '暂无内容'),
+            date: normalizeDateInput(safeText(note.date, getToday()), this.currentYear, this.currentMonth),
+            startTime: safeText(note.startTime, '未设置'),
+            endTime: safeText(note.endTime, '未设置'),
+            description: safeText(note.content, '暂无内容'),
             done: false
           })
         })
@@ -391,7 +484,7 @@ export struct CalendarPage {
       try {
         let habits = JSON.parse(habitsValue) as HabitData[]
         habits.forEach((habit: HabitData) => {
-          let startDate = this.normalizeDateInput(this.safeText(habit.date, this.getToday()))
+          let startDate = normalizeDateInput(safeText(habit.date, getToday()), this.currentYear, this.currentMonth)
           let checkedDates = this.getHabitCheckedDates(habit)
           let scheduleDates = this.getHabitScheduleDates(startDate, habit.targetDays, checkedDates)
 
@@ -401,10 +494,10 @@ export struct CalendarPage {
               type: '打卡',
               title: habit.title,
               date: dateText,
-              startTime: this.safeText(habit.startTime, '未设置'),
-              endTime: this.safeText(habit.endTime, '未设置'),
-              description: '目标：' + this.safeText(habit.target, '每日坚持完成') + '，已打卡：' + habit.days.toString() + '/' + habit.targetDays.toString() + ' 天；漏打日期会自动顺延',
-              done: this.dateInList(dateText, checkedDates)
+              startTime: safeText(habit.startTime, '未设置'),
+              endTime: safeText(habit.endTime, '未设置'),
+              description: '目标：' + safeText(habit.target, '每日坚持完成') + '，已打卡：' + habit.days.toString() + '/' + habit.targetDays.toString() + ' 天；漏打日期会自动顺延',
+              done: dateInList(dateText, checkedDates)
             })
           })
         })
@@ -418,46 +511,19 @@ export struct CalendarPage {
 
   updateCalendarDays(): void {
     let list: CalendarDay[] = []
+    let baseDays = buildMonthDays(this.currentYear, this.currentMonth, 5)
 
-    let firstWeek = new Date(this.currentYear, this.currentMonth - 1, 1).getDay()
-    let daysInMonth = new Date(this.currentYear, this.currentMonth, 0).getDate()
-    let prevYear = this.currentMonth === 1 ? this.currentYear - 1 : this.currentYear
-    let prevMonth = this.currentMonth === 1 ? 12 : this.currentMonth - 1
-    let nextYear = this.currentMonth === 12 ? this.currentYear + 1 : this.currentYear
-    let nextMonth = this.currentMonth === 12 ? 1 : this.currentMonth + 1
-    let daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate()
-
-    for (let i = 0; i < 42; i++) {
-      let finalYear = this.currentYear
-      let finalMonth = this.currentMonth
-      let finalDay = 1
-      let isCurrent = true
-
-      if (i < firstWeek) {
-        finalYear = prevYear
-        finalMonth = prevMonth
-        finalDay = daysInPrevMonth - firstWeek + i + 1
-        isCurrent = false
-      } else if (i >= firstWeek + daysInMonth) {
-        finalYear = nextYear
-        finalMonth = nextMonth
-        finalDay = i - firstWeek - daysInMonth + 1
-        isCurrent = false
-      } else {
-        finalDay = i - firstWeek + 1
-      }
-
-      let dateText = this.formatDate(finalYear, finalMonth, finalDay)
+    baseDays.forEach((day: SimpleCalendarDay) => {
       list.push({
-        date: dateText,
-        day: finalDay,
-        isCurrentMonth: isCurrent,
-        isToday: dateText === this.getToday(),
-        isSelected: dateText === this.selectedDate,
-        itemCount: this.getItemCountByDate(dateText),
-        doneCount: this.getDoneCountByDate(dateText)
+        date: day.date,
+        day: day.day,
+        isCurrentMonth: day.isCurrentMonth,
+        isToday: day.date === getToday(),
+        isSelected: day.date === this.selectedDate,
+        itemCount: this.getItemCountByDate(day.date),
+        doneCount: this.getDoneCountByDate(day.date)
       })
-    }
+    })
 
     this.calendarDays = list
   }
@@ -470,7 +536,7 @@ export struct CalendarPage {
       this.currentMonth = this.currentMonth - 1
     }
 
-    this.selectedDate = this.formatDate(this.currentYear, this.currentMonth, 1)
+    this.selectedDate = formatDate(this.currentYear, this.currentMonth, 1)
     this.updateCalendarDays()
   }
 
@@ -482,7 +548,7 @@ export struct CalendarPage {
       this.currentMonth = this.currentMonth + 1
     }
 
-    this.selectedDate = this.formatDate(this.currentYear, this.currentMonth, 1)
+    this.selectedDate = formatDate(this.currentYear, this.currentMonth, 1)
     this.updateCalendarDays()
   }
 
@@ -517,111 +583,66 @@ export struct CalendarPage {
   }
 
   getMonthItemCount(): number {
-    let monthText = this.formatMonth(this.currentYear, this.currentMonth)
+    let monthText = formatMonth(this.currentYear, this.currentMonth)
     return this.allItems.filter((item: CalendarItem) => {
       return item.date.startsWith(monthText)
     }).length
   }
 
   getMonthTypeCount(type: string): number {
-    let monthText = this.formatMonth(this.currentYear, this.currentMonth)
+    let monthText = formatMonth(this.currentYear, this.currentMonth)
     return this.allItems.filter((item: CalendarItem) => {
       return item.date.startsWith(monthText) && item.type === type
     }).length
   }
 
   getDayTextColor(day: CalendarDay): string {
+    if (!day.isCurrentMonth) {
+      return '#9CA3AF'
+    }
+
     if (day.isSelected) {
       return '#FFFFFF'
     }
 
     if (day.isToday) {
-      return '#22C55E'
-    }
-
-    if (!day.isCurrentMonth) {
-      return '#9CA3AF'
+      return '#4F7CFF'
     }
 
     return '#111827'
   }
 
-  getWeekTitles(): string[] {
-    return ['日', '一', '二', '三', '四', '五', '六']
+  getDayBackgroundColor(day: CalendarDay): string {
+    if (!day.isCurrentMonth) {
+      return '#F3F4F6'
+    }
+
+    if (day.isSelected) {
+      return this.themeColor
+    }
+
+    if (day.itemCount > 0) {
+      return '#EEF2FF'
+    }
+
+    return '#F9FAFB'
+  }
+
+  getMonthPickerList(): number[] {
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  }
+
+  selectMonth(year: number, month: number): void {
+    this.currentYear = year
+    this.currentMonth = month
+    this.selectedDate = formatDate(year, month, 1)
+    this.showMonthPicker = false
+    this.updateCalendarDays()
+    this.operationTip = '已切换到：' + this.getMonthTitle()
   }
 
   getMonthTitle(): string {
     return this.currentYear.toString() + '年' + this.currentMonth.toString() + '月'
-  }
-
-  getYearFromDate(date: string): number {
-    return Number(date.substring(0, 4))
-  }
-
-  getMonthFromDate(date: string): number {
-    return Number(date.substring(5, 7))
-  }
-
-  formatDate(year: number, month: number, day: number): string {
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
-
-  formatMonth(year: number, month: number): string {
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    return year.toString() + '-' + monthText
-  }
-
-  normalizeDateInput(value: string): string {
-    let raw = this.safeText(value, '').trim()
-
-    if (raw.length === 0 || raw === '未设置') {
-      return this.getToday()
-    }
-
-    if (raw === '今天') {
-      return this.getToday()
-    }
-
-    if (raw === '明天') {
-      return this.addDays(this.getToday(), 1)
-    }
-
-    raw = raw.replace('年', '-')
-    raw = raw.replace('月', '-')
-    raw = raw.replace('日', '')
-    raw = raw.replace('号', '')
-    raw = raw.replace('/', '-')
-    raw = raw.replace('.', '-')
-
-    let parts = raw.split('-')
-
-    if (parts.length === 1) {
-      let day = Number(parts[0])
-      if (!isNaN(day) && day >= 1 && day <= 31) {
-        return this.formatDate(this.currentYear, this.currentMonth, Math.floor(day))
-      }
-    }
-
-    if (parts.length === 2) {
-      let month = Number(parts[0])
-      let day = Number(parts[1])
-      if (!isNaN(month) && !isNaN(day)) {
-        return this.formatDate(this.currentYear, Math.floor(month), Math.floor(day))
-      }
-    }
-
-    if (parts.length >= 3) {
-      let year = Number(parts[0])
-      let month = Number(parts[1])
-      let day = Number(parts[2])
-      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        return this.formatDate(Math.floor(year), Math.floor(month), Math.floor(day))
-      }
-    }
-
-    return this.getToday()
   }
 
   getHabitCheckedDates(habit: HabitData): string[] {
@@ -629,16 +650,16 @@ export struct CalendarPage {
 
     if (habit.checkedDates !== undefined && habit.checkedDates !== null) {
       habit.checkedDates.forEach((dateText: string) => {
-        let normalized = this.normalizeDateInput(dateText)
-        if (!this.dateInList(normalized, result)) {
+        let normalized = normalizeDateInput(dateText, this.currentYear, this.currentMonth)
+        if (!dateInList(normalized, result)) {
           result.push(normalized)
         }
       })
     }
 
     if (habit.checkedDate !== undefined && habit.checkedDate !== null && habit.checkedDate.length > 0) {
-      let normalizedCheckedDate = this.normalizeDateInput(habit.checkedDate)
-      if (!this.dateInList(normalizedCheckedDate, result)) {
+      let normalizedCheckedDate = normalizeDateInput(habit.checkedDate, this.currentYear, this.currentMonth)
+      if (!dateInList(normalizedCheckedDate, result)) {
         result.push(normalizedCheckedDate)
       }
     }
@@ -654,12 +675,12 @@ export struct CalendarPage {
       finalTargetDays = 30
     }
 
-    let startIndex = this.dateToDayNumber(startDate)
-    let todayIndex = this.dateToDayNumber(this.getToday())
+    let startIndex = dateToDayNumber(startDate)
+    let todayIndex = dateToDayNumber(getToday())
 
     let checkedBeforeToday = 0
     checkedDates.forEach((dateText: string) => {
-      let dateIndex = this.dateToDayNumber(dateText)
+      let dateIndex = dateToDayNumber(dateText)
       if (dateIndex >= startIndex && dateIndex < todayIndex) {
         checkedBeforeToday = checkedBeforeToday + 1
       }
@@ -680,7 +701,7 @@ export struct CalendarPage {
     if (checkedDates.length >= finalTargetDays) {
       let lastCheckedIndex = startIndex
       checkedDates.forEach((dateText: string) => {
-        let dateIndex = this.dateToDayNumber(dateText)
+        let dateIndex = dateToDayNumber(dateText)
         if (dateIndex > lastCheckedIndex) {
           lastCheckedIndex = dateIndex
         }
@@ -689,55 +710,10 @@ export struct CalendarPage {
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
-      result.push(this.dayNumberToDate(i))
+      result.push(dayNumberToDate(i))
     }
 
     return result
   }
 
-  dateInList(dateText: string, list: string[]): boolean {
-    return list.indexOf(dateText) >= 0
-  }
-
-  dateToDayNumber(dateText: string): number {
-    let year = Number(dateText.substring(0, 4))
-    let month = Number(dateText.substring(5, 7))
-    let day = Number(dateText.substring(8, 10))
-
-    // 使用 UTC 计算“日期序号”，避免中国时区下 17 号被换算成 16 号的问题。
-    let time = Date.UTC(year, month - 1, day)
-    return Math.floor(time / 86400000)
-  }
-
-  dayNumberToDate(dayNumber: number): string {
-    // 使用 UTC 读取年月日，保证日期加减不受本地时区影响。
-    let date = new Date(dayNumber * 86400000)
-    let year = date.getUTCFullYear()
-    let month = date.getUTCMonth() + 1
-    let day = date.getUTCDate()
-    return this.formatDate(year, month, day)
-  }
-
-  addDays(dateText: string, count: number): string {
-    return this.dayNumberToDate(this.dateToDayNumber(dateText) + count)
-  }
-
-  safeText(value: string, defaultValue: string): string {
-    if (value === undefined || value === null || value.length === 0) {
-      return defaultValue
-    }
-    return value
-  }
-
-  getToday(): string {
-    let date = new Date()
-    let year = date.getFullYear()
-    let month = date.getMonth() + 1
-    let day = date.getDate()
-
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
 }

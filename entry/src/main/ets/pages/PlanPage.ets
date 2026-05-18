@@ -2,6 +2,9 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
+import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY } from '../utils/StoreConstants'
+import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 
 @Component
 export struct PlanPage {
@@ -10,9 +13,9 @@ export struct PlanPage {
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
 
-  readonly STORE_NAME: string = 'time_plan_store'
-  readonly TASKS_KEY: string = 'plan_tasks'
-  readonly TASK_NEXT_ID_KEY: string = 'plan_tasks_next_id'
+  readonly STORE_NAME: string = TIME_PLAN_STORE_NAME
+  readonly TASKS_KEY: string = PLAN_TASKS_KEY
+  readonly TASK_NEXT_ID_KEY: string = PLAN_TASK_NEXT_ID_KEY
 
   @State showAddPanel: boolean = false
   @State taskTitle: string = ''
@@ -110,7 +113,7 @@ export struct PlanPage {
         .borderRadius(18)
         .margin({ bottom: 18 })
 
-        Button(this.showAddPanel ? '收起新增任务' : '+ 新增待办')
+        Button(this.showAddPanel ? '取消' : '+ 新增待办')
           .width('100%')
           .height(48)
           .fontSize(17)
@@ -121,7 +124,7 @@ export struct PlanPage {
           .onClick(() => {
             this.showAddPanel = !this.showAddPanel
             if (this.taskDate.trim().length === 0) {
-              this.taskDate = this.getToday()
+              this.taskDate = getToday()
             }
           })
 
@@ -261,7 +264,7 @@ export struct PlanPage {
             .fontWeight(FontWeight.Bold)
             .fontColor(task.done ? '#9CA3AF' : '#111827')
 
-          Text('日期：' + this.safeText(task.date, '未设置') + '    时间：' + this.safeText(task.startTime, '未设置') + ' - ' + this.safeText(task.endTime, '未设置'))
+          Text('日期：' + safeText(task.date, '未设置') + '    时间：' + safeText(task.startTime, '未设置') + ' - ' + safeText(task.endTime, '未设置'))
             .fontSize(13)
             .fontColor(this.themeColor)
             .margin({ top: 4 })
@@ -319,9 +322,7 @@ export struct PlanPage {
       return
     }
 
-    this.dataPreferences = await preferences.getPreferences(this.context, {
-      name: this.STORE_NAME
-    })
+    this.dataPreferences = await getTimePlanPreferences(this.context)
   }
 
   async loadTasks(): Promise<void> {
@@ -351,12 +352,12 @@ export struct PlanPage {
       result.push({
         id: item.id,
         title: item.title,
-        priority: this.safeText(item.priority, '中'),
-        date: this.normalizeDateInput(this.safeText(item.date, this.getToday())),
-        startTime: this.safeText(item.startTime, '未设置'),
-        endTime: this.safeText(item.endTime, '未设置'),
+        priority: safeText(item.priority, '中'),
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
         done: item.done,
-        createDate: this.safeText(item.createDate, this.getToday())
+        createDate: safeText(item.createDate, getToday())
       })
     })
     return result
@@ -401,11 +402,11 @@ export struct PlanPage {
       id: this.taskNextId,
       title: this.taskTitle,
       priority: this.taskPriority.trim().length === 0 ? '中' : this.taskPriority,
-      date: this.normalizeDateInput(this.taskDate),
+      date: normalizeDateInput(this.taskDate),
       startTime: this.taskStartTime.trim().length === 0 ? '未设置' : this.taskStartTime,
       endTime: this.taskEndTime.trim().length === 0 ? '未设置' : this.taskEndTime,
       done: false,
-      createDate: this.getToday()
+      createDate: getToday()
     }
 
     this.tasks = [newTask, ...this.tasks]
@@ -413,7 +414,7 @@ export struct PlanPage {
 
     this.taskTitle = ''
     this.taskPriority = ''
-    this.taskDate = this.getToday()
+    this.taskDate = getToday()
     this.taskStartTime = ''
     this.taskEndTime = ''
     this.showAddPanel = false
@@ -474,89 +475,4 @@ export struct PlanPage {
     }).length
   }
 
-  normalizeDateInput(value: string): string {
-    let raw = this.safeText(value, '').trim()
-
-    if (raw.length === 0 || raw === '未设置') {
-      return this.getToday()
-    }
-
-    if (raw === '今天') {
-      return this.getToday()
-    }
-
-    if (raw === '明天') {
-      return this.addDays(this.getToday(), 1)
-    }
-
-    raw = raw.replace('年', '-')
-    raw = raw.replace('月', '-')
-    raw = raw.replace('日', '')
-    raw = raw.replace('号', '')
-    raw = raw.replace('/', '-')
-    raw = raw.replace('.', '-')
-
-    let parts = raw.split('-')
-
-    if (parts.length === 1) {
-      let day = Number(parts[0])
-      if (!isNaN(day) && day >= 1 && day <= 31) {
-        let now = new Date()
-        return this.formatDate(now.getFullYear(), now.getMonth() + 1, Math.floor(day))
-      }
-    }
-
-    if (parts.length === 2) {
-      let month = Number(parts[0])
-      let day = Number(parts[1])
-      if (!isNaN(month) && !isNaN(day)) {
-        let now = new Date()
-        return this.formatDate(now.getFullYear(), Math.floor(month), Math.floor(day))
-      }
-    }
-
-    if (parts.length >= 3) {
-      let year = Number(parts[0])
-      let month = Number(parts[1])
-      let day = Number(parts[2])
-      if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-        return this.formatDate(Math.floor(year), Math.floor(month), Math.floor(day))
-      }
-    }
-
-    return this.getToday()
-  }
-
-  addDays(dateText: string, count: number): string {
-    let year = Number(dateText.substring(0, 4))
-    let month = Number(dateText.substring(5, 7))
-    let day = Number(dateText.substring(8, 10))
-    let date = new Date(year, month - 1, day + count)
-    return this.formatDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
-  }
-
-  formatDate(year: number, month: number, day: number): string {
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
-
-  safeText(value: string, defaultValue: string): string {
-    if (value === undefined || value === null || value.length === 0) {
-      return defaultValue
-    }
-    return value
-  }
-
-  getToday(): string {
-    let date = new Date()
-    let year = date.getFullYear()
-    let month = date.getMonth() + 1
-    let day = date.getDate()
-
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
 }

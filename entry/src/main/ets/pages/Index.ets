@@ -1,9 +1,10 @@
 import { CalendarPage } from './CalendarPage'
 import { PlanPage } from './PlanPage'
-import { NotePage } from './NotePage'
-import { CheckPage } from './CheckPage'
+import { FocusPage } from './FocusPage'
+import { ReviewPage } from './ReviewPage'
 import { MinePage } from './MinePage'
 import { AppColors } from '../utils/AppColors'
+
 @Entry
 @Component
 struct Index {
@@ -23,14 +24,14 @@ struct Index {
       .tabBar('计划')
 
       TabContent() {
-        NotePage({ themeColor: this.themeColor })
+        FocusPage({ themeColor: this.themeColor })
       }
-      .tabBar('便签')
+      .tabBar('专注')
 
       TabContent() {
-        CheckPage({ themeColor: this.themeColor })
+        ReviewPage({ themeColor: this.themeColor })
       }
-      .tabBar('打卡')
+      .tabBar('统计')
 
       TabContent() {
         MinePage({

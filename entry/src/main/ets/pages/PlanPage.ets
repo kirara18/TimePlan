@@ -1,16 +1,22 @@
-import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
-import { TodoTask } from '../model/AppModels'
+import { TodoTask, NoteItem, HabitData } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { PlanDateTimeSelector } from '../components/plan/PlanDateTimeSelector'
 import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
-import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY } from '../utils/StoreConstants'
-import { getTimePlanPreferences } from '../utils/PreferenceUtil'
+import { PlanStorageService, PlanStorageLoadResult } from '../services/PlanStorageService'
 import { AppColors } from '../utils/AppColors'
 
-interface CalendarSelectDay {
+interface PlanDisplayItem {
+  id: number
+  planType: string
+  title: string
   date: string
-  day: number
-  isCurrentMonth: boolean
+  startTime: string
+  endTime: string
+  summary: string
+  statusText: string
+  done: boolean
+  createDate: string
 }
 
 @Component
@@ -18,26 +24,29 @@ export struct PlanPage {
   @Prop themeColor: string = AppColors.BLUE
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
-  dataPreferences: preferences.Preferences | null = null
-
-  readonly STORE_NAME: string = TIME_PLAN_STORE_NAME
-  readonly TASKS_KEY: string = PLAN_TASKS_KEY
-  readonly TASK_NEXT_ID_KEY: string = PLAN_TASK_NEXT_ID_KEY
 
   @State showAddPanel: boolean = false
-  @State taskTitle: string = ''
-  @State taskPriority: string = ''
-  @State taskDate: string = ''
-  @State taskStartTime: string = ''
-  @State taskEndTime: string = ''
-  @State taskSearchText: string = ''
+  @State createPlanType: string = 'Task'
+  @State filterPlanType: string = 'All'
+  @State planSearchText: string = ''
 
-  // 日期选择面板相关状态
-  @State showTaskDatePicker: boolean = false
-  @State pickerYear: number = 0
-  @State pickerMonth: number = 0
+  @State planTitle: string = ''
+  @State planDate: string = ''
+  @State planStartTime: string = ''
+  @State planEndTime: string = ''
+
+  @State taskPriority: string = '中'
+
+  @State noteContent: string = ''
+  @State noteCategory: string = ''
+
+  @State checkTarget: string = ''
+  @State checkTargetDaysText: string = ''
 
   @State taskNextId: number = 4
+  @State noteNextId: number = 3
+  @State checkNextId: number = 4
+
   @State tasks: TodoTask[] = [
     {
       id: 1,
@@ -71,13 +80,74 @@ export struct PlanPage {
     }
   ]
 
-  aboutToAppear(): void {
-    let now = new Date()
-    this.pickerYear = now.getFullYear()
-    this.pickerMonth = now.getMonth() + 1
+  @State notes: NoteItem[] = [
+    {
+      id: 1,
+      title: '课程重点',
+      content: 'ArkTS、Stage 模型、UIAbility、页面路由、Preferences 本地存储。',
+      category: '学习',
+      date: '2026-05-17',
+      startTime: '16:00',
+      endTime: '16:30',
+      createDate: '2026-05-17'
+    },
+    {
+      id: 2,
+      title: 'App 亮点',
+      content: '日历汇总、模块联动、主题切换、本地保存。',
+      category: '项目',
+      date: '2026-05-18',
+      startTime: '19:00',
+      endTime: '19:30',
+      createDate: '2026-05-17'
+    }
+  ]
 
-    if (this.taskDate.trim().length === 0) {
-      this.taskDate = getToday()
+  @State checks: HabitData[] = [
+    {
+      id: 1,
+      title: '学习 ArkTS',
+      target: '每天学习 30 分钟',
+      days: 3,
+      targetDays: 30,
+      date: '2026-05-17',
+      startTime: '20:00',
+      endTime: '20:30',
+      checkedDate: '',
+      checkedDates: [],
+      createDate: '2026-05-17'
+    },
+    {
+      id: 2,
+      title: '完成项目开发',
+      target: '每天推进一个功能模块',
+      days: 2,
+      targetDays: 14,
+      date: '2026-05-17',
+      startTime: '21:00',
+      endTime: '22:00',
+      checkedDate: '',
+      checkedDates: [],
+      createDate: '2026-05-17'
+    },
+    {
+      id: 3,
+      title: '复盘总结',
+      target: '每天记录开发问题和收获',
+      days: 1,
+      targetDays: 7,
+      date: '2026-05-18',
+      startTime: '22:30',
+      endTime: '23:00',
+      checkedDate: '',
+      checkedDates: [],
+      createDate: '2026-05-17'
+    }
+  ]
+
+  aboutToAppear(): void {
+    if (this.planDate.trim().length === 0) {
+      this.planDate = getToday()
     }
 
     this.initPreferencesAndLoad().then(() => {
@@ -96,33 +166,39 @@ export struct PlanPage {
           .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
-        Text('建立待办时选择日期，并填写开始时间和结束时间')
-          .fontSize(15)
-          .fontColor(AppColors.GRAY_500)
-          .margin({ bottom: 20 })
-
-        TextInput({ text: this.taskSearchText, placeholder: '搜索待办任务...' })
+        TextInput({ text: this.planSearchText, placeholder: '搜索计划标题、内容、分类、目标或时间...' })
           .width('100%')
           .height(44)
           .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
-          .margin({ bottom: 20 })
+          .margin({ bottom: 16 })
           .onChange((value: string) => {
-            this.taskSearchText = value
+            this.planSearchText = value
           })
 
+        this.FilterBar()
+
         Column() {
-          Text('任务概览')
+          Text('计划概览')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 14 })
 
           Row() {
-            StatBox({ themeColor: this.themeColor, title: '总数', value: this.tasks.length.toString() })
+            StatBox({ themeColor: this.themeColor, title: '全部', value: this.getPlanTotalCount().toString() })
+            StatBox({ themeColor: this.themeColor, title: '待办', value: this.tasks.length.toString() })
+            StatBox({ themeColor: this.themeColor, title: '便签', value: this.notes.length.toString() })
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+          .margin({ bottom: 10 })
+
+          Row() {
+            StatBox({ themeColor: this.themeColor, title: '打卡', value: this.checks.length.toString() })
             StatBox({ themeColor: this.themeColor, title: '已完成', value: this.getDoneCount().toString() })
-            StatBox({ themeColor: this.themeColor, title: '未完成', value: this.getUndoneCount().toString() })
+            StatBox({ themeColor: this.themeColor, title: '今日打卡', value: this.getTodayCheckedCount().toString() })
           }
           .width('100%')
           .justifyContent(FlexAlign.SpaceBetween)
@@ -133,7 +209,7 @@ export struct PlanPage {
         .borderRadius(18)
         .margin({ bottom: 18 })
 
-        Button(this.showAddPanel ? '取消' : '+ 新增待办')
+        Button(this.showAddPanel ? '取消' : '+ 新增计划')
           .width('100%')
           .height(48)
           .fontSize(17)
@@ -144,148 +220,25 @@ export struct PlanPage {
           .onClick(() => {
             this.showAddPanel = !this.showAddPanel
 
-            if (this.showAddPanel) {
-              if (this.taskDate.trim().length === 0) {
-                this.taskDate = getToday()
-              }
-
-              this.pickerYear = this.getYearFromDate(this.taskDate)
-              this.pickerMonth = this.getMonthFromDate(this.taskDate)
-            } else {
-              this.showTaskDatePicker = false
+            if (this.showAddPanel && this.planDate.trim().length === 0) {
+              this.planDate = getToday()
             }
           })
 
         if (this.showAddPanel) {
-          Column() {
-            Text('新增待办任务')
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(AppColors.GRAY_900)
-              .margin({ bottom: 12 })
-
-            TextInput({ text: this.taskTitle, placeholder: '请输入任务名称，例如：完成课程报告' })
-              .width('100%')
-              .height(44)
-              .backgroundColor(AppColors.GRAY_50)
-              .borderRadius(12)
-              .padding({ left: 12, right: 12 })
-              .margin({ bottom: 10 })
-              .onChange((value: string) => {
-                this.taskTitle = value
-              })
-
-            TextInput({ text: this.taskPriority, placeholder: '请输入优先级：高 / 中 / 低' })
-              .width('100%')
-              .height(44)
-              .backgroundColor(AppColors.GRAY_50)
-              .borderRadius(12)
-              .padding({ left: 12, right: 12 })
-              .margin({ bottom: 10 })
-              .onChange((value: string) => {
-                this.taskPriority = value
-              })
-
-            Column() {
-              Row() {
-                Column() {
-                  Text('任务日期')
-                    .fontSize(13)
-                    .fontColor(AppColors.GRAY_500)
-                    .margin({ bottom: 4 })
-
-                  Text(this.taskDate.length > 0 ? this.taskDate : '请选择日期')
-                    .fontSize(16)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(this.taskDate.length > 0 ? AppColors.GRAY_900 : AppColors.GRAY_400)
-                }
-                .layoutWeight(1)
-                .alignItems(HorizontalAlign.Start)
-
-                Text(this.showTaskDatePicker ? '收起' : '选择')
-                  .fontSize(14)
-                  .fontColor(this.themeColor)
-                  .fontWeight(FontWeight.Bold)
-              }
-              .width('100%')
-              .height(56)
-              .padding({ left: 12, right: 12 })
-              .backgroundColor(AppColors.GRAY_50)
-              .borderRadius(12)
-              .onClick(() => {
-                let baseDate = this.taskDate.length > 0 ? this.taskDate : getToday()
-                this.pickerYear = this.getYearFromDate(baseDate)
-                this.pickerMonth = this.getMonthFromDate(baseDate)
-
-                animateTo({
-                  duration: 220,
-                  curve: Curve.EaseOut
-                }, () => {
-                  this.showTaskDatePicker = !this.showTaskDatePicker
-                })
-              })
-
-              if (this.showTaskDatePicker) {
-                this.TaskDatePickerPanel()
-              }
-            }
-            .width('100%')
-            .margin({ bottom: 10 })
-
-            Row() {
-              TextInput({ text: this.taskStartTime, placeholder: '开始 09:00' })
-                .layoutWeight(1)
-                .height(44)
-                .backgroundColor(AppColors.GRAY_50)
-                .borderRadius(12)
-                .padding({ left: 12, right: 12 })
-                .margin({ right: 6 })
-                .onChange((value: string) => {
-                  this.taskStartTime = value
-                })
-
-              TextInput({ text: this.taskEndTime, placeholder: '结束 10:00' })
-                .layoutWeight(1)
-                .height(44)
-                .backgroundColor(AppColors.GRAY_50)
-                .borderRadius(12)
-                .padding({ left: 12, right: 12 })
-                .margin({ left: 6 })
-                .onChange((value: string) => {
-                  this.taskEndTime = value
-                })
-            }
-            .width('100%')
-            .margin({ bottom: 14 })
-
-            Button('保存待办')
-              .width('100%')
-              .height(44)
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .backgroundColor(AppColors.GREEN)
-              .borderRadius(12)
-              .onClick(() => {
-                this.addTask()
-              })
-          }
-          .width('100%')
-          .padding(18)
-          .backgroundColor(AppColors.WHITE)
-          .borderRadius(18)
-          .margin({ bottom: 18 })
+          this.CreatePlanPanel()
         }
 
         Column() {
-          Text('待办任务')
+          Text('计划列表')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
-          if (this.getFilteredTasks().length === 0) {
+          if (this.getFilteredPlanItems().length === 0) {
             Column() {
-              Text('暂无匹配任务')
+              Text('暂无匹配计划')
                 .fontSize(16)
                 .fontColor(AppColors.GRAY_400)
                 .margin({ top: 20, bottom: 20 })
@@ -293,9 +246,9 @@ export struct PlanPage {
             .width('100%')
             .alignItems(HorizontalAlign.Center)
           } else {
-            ForEach(this.getFilteredTasks(), (item: TodoTask) => {
-              this.TaskCard(item)
-            }, (item: TodoTask) => item.id.toString() + '_' + item.done.toString() + '_' + item.date + '_' + item.startTime)
+            ForEach(this.getFilteredPlanItems(), (item: PlanDisplayItem) => {
+              this.PlanItemCard(item)
+            }, (item: PlanDisplayItem) => item.planType + '_' + item.id.toString() + '_' + item.done.toString() + '_' + item.date + '_' + item.startTime)
           }
         }
         .width('100%')
@@ -313,138 +266,300 @@ export struct PlanPage {
   }
 
   @Builder
-  TaskDatePickerPanel() {
+  FilterBar() {
+    Row() {
+      ForEach(this.getFilterOptions(), (item: string) => {
+        Text(this.getPlanTypeTitle(item))
+          .layoutWeight(1)
+          .height(36)
+          .fontSize(14)
+          .fontWeight(this.filterPlanType === item ? FontWeight.Bold : FontWeight.Normal)
+          .fontColor(this.filterPlanType === item ? AppColors.WHITE : AppColors.GRAY_900)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.filterPlanType === item ? this.themeColor : AppColors.WHITE)
+          .borderRadius(12)
+          .onClick(() => {
+            this.filterPlanType = item
+          })
+      }, (item: string) => item)
+    }
+    .width('100%')
+    .margin({ bottom: 18 })
+  }
+
+  @Builder
+  CreatePlanPanel() {
     Column() {
+      Text('新增计划')
+        .fontSize(20)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(AppColors.GRAY_900)
+        .margin({ bottom: 12 })
+
+      Text('请选择计划类型')
+        .fontSize(13)
+        .fontColor(AppColors.GRAY_500)
+        .margin({ bottom: 8 })
+
       Row() {
-        Button('<')
-          .width(42)
-          .height(34)
-          .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
-          .fontColor(AppColors.GRAY_900)
-          .borderRadius(10)
-          .onClick(() => {
-            this.goPreviousPickerMonth()
-          })
-
-        Blank()
-
-        Text(this.pickerYear.toString() + '年' + this.pickerMonth.toString() + '月')
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(AppColors.GRAY_900)
-
-        Blank()
-
-        Button('>')
-          .width(42)
-          .height(34)
-          .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
-          .fontColor(AppColors.GRAY_900)
-          .borderRadius(10)
-          .onClick(() => {
-            this.goNextPickerMonth()
-          })
+        this.CreateTypeButton('Task')
+        this.CreateTypeButton('Note')
+        this.CreateTypeButton('Check')
       }
       .width('100%')
-      .margin({ bottom: 12 })
+      .margin({ bottom: 14 })
+
+      TextInput({ text: this.planTitle, placeholder: this.getTitlePlaceholder() })
+        .width('100%')
+        .height(44)
+        .backgroundColor(AppColors.GRAY_50)
+        .borderRadius(12)
+        .padding({ left: 12, right: 12 })
+        .margin({ bottom: 10 })
+        .onChange((value: string) => {
+          this.planTitle = value
+        })
+
+      if (this.createPlanType === 'Task') {
+        this.TaskPrioritySelector()
+      }
+
+      if (this.createPlanType === 'Note') {
+        TextInput({ text: this.noteContent, placeholder: '请输入便签内容' })
+          .width('100%')
+          .height(90)
+          .backgroundColor(AppColors.GRAY_50)
+          .borderRadius(12)
+          .padding({ left: 12, right: 12 })
+          .margin({ bottom: 10 })
+          .onChange((value: string) => {
+            this.noteContent = value
+          })
+
+        TextInput({ text: this.noteCategory, placeholder: '请输入分类，例如：学习 / 项目 / 生活' })
+          .width('100%')
+          .height(44)
+          .backgroundColor(AppColors.GRAY_50)
+          .borderRadius(12)
+          .padding({ left: 12, right: 12 })
+          .margin({ bottom: 10 })
+          .onChange((value: string) => {
+            this.noteCategory = value
+          })
+      }
+
+      if (this.createPlanType === 'Check') {
+        TextInput({ text: this.checkTarget, placeholder: '请输入打卡目标，例如：每天学习 30 分钟' })
+          .width('100%')
+          .height(44)
+          .backgroundColor(AppColors.GRAY_50)
+          .borderRadius(12)
+          .padding({ left: 12, right: 12 })
+          .margin({ bottom: 10 })
+          .onChange((value: string) => {
+            this.checkTarget = value
+          })
+
+        TextInput({ text: this.checkTargetDaysText, placeholder: '请输入计划打卡天数，例如：30' })
+          .width('100%')
+          .height(44)
+          .backgroundColor(AppColors.GRAY_50)
+          .borderRadius(12)
+          .padding({ left: 12, right: 12 })
+          .margin({ bottom: 10 })
+          .onChange((value: string) => {
+            this.checkTargetDaysText = value
+          })
+      }
+
+      PlanDateTimeSelector({
+        themeColor: this.themeColor,
+        planDate: this.planDate,
+        planStartTime: this.planStartTime,
+        planEndTime: this.planEndTime,
+        onDateChange: (dateText: string) => {
+          this.planDate = dateText
+        },
+        onStartTimeChange: (timeText: string) => {
+          this.planStartTime = timeText
+        },
+        onEndTimeChange: (timeText: string) => {
+          this.planEndTime = timeText
+        }
+      })
+
+      Button('保存' + this.getPlanTypeTitle(this.createPlanType))
+        .width('100%')
+        .height(44)
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .backgroundColor(AppColors.GREEN)
+        .borderRadius(12)
+        .onClick(() => {
+          this.addPlan()
+        })
+    }
+    .width('100%')
+    .padding(18)
+    .backgroundColor(AppColors.WHITE)
+    .borderRadius(18)
+    .margin({ bottom: 18 })
+  }
+
+  @Builder
+  CreateTypeButton(type: string) {
+    Text(this.getPlanTypeTitle(type))
+      .layoutWeight(1)
+      .height(38)
+      .fontSize(14)
+      .fontWeight(this.createPlanType === type ? FontWeight.Bold : FontWeight.Normal)
+      .fontColor(this.createPlanType === type ? AppColors.WHITE : AppColors.GRAY_900)
+      .textAlign(TextAlign.Center)
+      .backgroundColor(this.createPlanType === type ? this.themeColor : AppColors.GRAY_50)
+      .borderRadius(12)
+      .margin({ right: type === 'Check' ? 0 : 8 })
+      .onClick(() => {
+        this.createPlanType = type
+      })
+  }
+
+  @Builder
+  TaskPrioritySelector() {
+    Column() {
+      Text('请选择优先级')
+        .fontSize(13)
+        .fontColor(AppColors.GRAY_500)
+        .margin({ bottom: 8 })
 
       Row() {
-        ForEach(this.getWeekTitles(), (item: string) => {
-          Text(item)
-            .width('14.28%')
+        this.PriorityButton('高')
+        this.PriorityButton('中')
+        this.PriorityButton('低')
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .margin({ bottom: 10 })
+  }
+
+  @Builder
+  PriorityButton(priority: string) {
+    Text(priority)
+      .layoutWeight(1)
+      .height(38)
+      .fontSize(14)
+      .fontWeight(this.taskPriority === priority ? FontWeight.Bold : FontWeight.Normal)
+      .fontColor(this.taskPriority === priority ? AppColors.WHITE : this.getPriorityColor(priority))
+      .textAlign(TextAlign.Center)
+      .backgroundColor(this.taskPriority === priority ? this.getPriorityColor(priority) : AppColors.GRAY_50)
+      .borderRadius(12)
+      .margin({ right: priority === '低' ? 0 : 8 })
+      .onClick(() => {
+        this.taskPriority = priority
+      })
+  }
+
+  @Builder
+  PlanItemCard(item: PlanDisplayItem) {
+    Column() {
+      Row() {
+        Text(this.getPlanTypeTag(item.planType))
+          .fontSize(12)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.getPlanTypeColor(item.planType))
+          .backgroundColor(this.getPlanTypeBgColor(item.planType))
+          .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+          .borderRadius(8)
+          .margin({ right: 8 })
+
+        Text(item.title)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(item.done ? AppColors.GRAY_400 : AppColors.GRAY_900)
+          .layoutWeight(1)
+
+        if (item.planType !== 'Note') {
+          Text(item.statusText)
             .fontSize(12)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppColors.GRAY_500)
-            .textAlign(TextAlign.Center)
-        }, (item: string) => item)
+            .fontColor(item.done ? AppColors.GREEN : AppColors.RED)
+            .backgroundColor(item.done ? AppColors.GREEN_100 : AppColors.RED_100)
+            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+            .borderRadius(8)
+        }
       }
       .width('100%')
       .margin({ bottom: 8 })
 
-      Grid() {
-        ForEach(this.getPickerDays(), (day: CalendarSelectDay) => {
-          GridItem() {
-            Text(day.day.toString())
-              .width('100%')
-              .height(34)
-              .fontSize(14)
-              .fontWeight(day.date === this.taskDate ? FontWeight.Bold : FontWeight.Normal)
-              .fontColor(this.getPickerDayTextColor(day))
-              .textAlign(TextAlign.Center)
-              .backgroundColor(day.date === this.taskDate ? this.themeColor : AppColors.WHITE)
-              .borderRadius(10)
-              .border({
-                width: day.date === getToday() && day.date !== this.taskDate ? 1 : 0,
-                color: AppColors.BLUE,
-                style: BorderStyle.Solid
-              })
-              .onClick(() => {
-                this.selectTaskDate(day.date)
-              })
-          }
-        }, (day: CalendarSelectDay) => day.date + '_' + day.isCurrentMonth.toString())
-      }
-      .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
-      .rowsGap(6)
-      .columnsGap(6)
-      .width('100%')
-    }
-    .width('100%')
-    .padding(12)
-    .backgroundColor(AppColors.WHITE)
-    .borderRadius(14)
-    .margin({ top: 10 })
-    .transition({
-      type: TransitionType.All,
-      opacity: 0,
-      translate: { x: 0, y: -10 }
-    })
-  }
+      Text(item.summary)
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_500)
+        .margin({ bottom: 8 })
 
-  @Builder
-  TaskCard(task: TodoTask) {
-    Column() {
-      Row() {
-        Text(task.done ? '✓' : '○')
-          .fontSize(24)
-          .fontColor(task.done ? AppColors.GREEN : AppColors.GRAY_400)
-          .margin({ right: 10 })
+      Text('日期：' + safeText(item.date, '未设置') + '    时间：' + safeText(item.startTime, '未设置') + ' - ' + safeText(item.endTime, '未设置'))
+        .fontSize(13)
+        .fontColor(this.themeColor)
+        .margin({ bottom: 12 })
 
+      if (item.planType === 'Check') {
         Column() {
-          Text(task.title)
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(task.done ? AppColors.GRAY_400 : AppColors.GRAY_900)
+          Row() {
+            Text('进度：' + this.getCheckProgressTextById(item.id))
+              .fontSize(12)
+              .fontColor(AppColors.GRAY_500)
+              .layoutWeight(1)
 
-          Text('日期：' + safeText(task.date, '未设置') + '    时间：' + safeText(task.startTime, '未设置') + ' - ' + safeText(task.endTime, '未设置'))
-            .fontSize(13)
-            .fontColor(this.themeColor)
-            .margin({ top: 4 })
+            Text(this.isCheckCheckedTodayById(item.id) ? '今日已打卡' : '今日未打卡')
+              .fontSize(12)
+              .fontColor(this.isCheckCheckedTodayById(item.id) ? AppColors.GREEN : AppColors.RED)
+          }
+          .width('100%')
+          .margin({ bottom: 6 })
 
-          Text('优先级：' + task.priority + '    状态：' + (task.done ? '已完成' : '未完成'))
-            .fontSize(12)
-            .fontColor(AppColors.GRAY_500)
-            .margin({ top: 4 })
+          Row() {
+            Row() {}
+            .width(this.getCheckProgressWidthById(item.id))
+            .height(6)
+            .backgroundColor(AppColors.GREEN)
+            .borderRadius(3)
+          }
+          .width('100%')
+          .height(6)
+          .backgroundColor(AppColors.GRAY_200)
+          .borderRadius(3)
         }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
+        .width('100%')
+        .padding(10)
+        .backgroundColor(AppColors.GREEN_50)
+        .borderRadius(10)
+        .margin({ bottom: 12 })
       }
-      .width('100%')
-      .margin({ bottom: 12 })
 
       Row() {
-        Button(task.done ? '恢复' : '完成')
-          .layoutWeight(1)
-          .height(38)
-          .fontSize(14)
-          .backgroundColor(task.done ? AppColors.GRAY_400 : AppColors.GREEN)
-          .borderRadius(12)
-          .margin({ right: 8 })
-          .onClick(() => {
-            this.toggleTask(task.id)
-          })
+        if (item.planType === 'Task') {
+          Button(item.done ? '恢复' : '完成')
+            .layoutWeight(1)
+            .height(38)
+            .fontSize(14)
+            .backgroundColor(item.done ? AppColors.GRAY_400 : AppColors.GREEN)
+            .borderRadius(12)
+            .margin({ right: 8 })
+            .onClick(() => {
+              this.toggleTask(item.id)
+            })
+        }
+
+        if (item.planType === 'Check') {
+          Button(this.isCheckCheckedTodayById(item.id) ? '取消打卡' : '今日打卡')
+            .layoutWeight(1)
+            .height(38)
+            .fontSize(14)
+            .backgroundColor(this.isCheckCheckedTodayById(item.id) ? AppColors.GRAY_400 : AppColors.GREEN)
+            .borderRadius(12)
+            .margin({ right: 8 })
+            .onClick(() => {
+              this.toggleCheck(item.id)
+            })
+        }
 
         Button('删除')
           .layoutWeight(1)
@@ -452,133 +567,359 @@ export struct PlanPage {
           .fontSize(14)
           .backgroundColor(AppColors.RED)
           .borderRadius(12)
-          .margin({ left: 8 })
+          .margin({ left: item.planType === 'Note' ? 0 : 8 })
           .onClick(() => {
-            this.deleteTask(task.id)
+            this.deletePlanItem(item.planType, item.id)
           })
       }
       .width('100%')
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(task.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
+    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
     .borderRadius(12)
     .margin({ bottom: 10 })
+    .alignItems(HorizontalAlign.Start)
   }
 
   async initPreferencesAndLoad(): Promise<void> {
-    await this.initPreferences()
-    await this.loadTasks()
+    await this.loadAllPlanData()
   }
 
-  async initPreferences(): Promise<void> {
-    if (this.dataPreferences !== null) {
-      return
-    }
+  async loadAllPlanData(): Promise<void> {
+    let result: PlanStorageLoadResult = await PlanStorageService.loadAllPlanData(
+      this.context,
+      this.tasks,
+      this.taskNextId,
+      this.notes,
+      this.noteNextId,
+      this.checks,
+      this.checkNextId
+    )
 
-    this.dataPreferences = await getTimePlanPreferences(this.context)
-  }
-
-  async loadTasks(): Promise<void> {
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    let tasksValue = await this.dataPreferences.get(this.TASKS_KEY, '')
-    if (typeof tasksValue === 'string' && tasksValue.length > 0) {
-      try {
-        let parsedTasks = JSON.parse(tasksValue) as TodoTask[]
-        this.tasks = this.normalizeTasks(parsedTasks)
-      } catch (err) {
-        console.error('读取待办失败')
-      }
-    }
-
-    let nextIdValue = await this.dataPreferences.get(this.TASK_NEXT_ID_KEY, 4)
-    if (typeof nextIdValue === 'number') {
-      this.taskNextId = nextIdValue
-    }
-  }
-
-  normalizeTasks(list: TodoTask[]): TodoTask[] {
-    let result: TodoTask[] = []
-    list.forEach((item: TodoTask) => {
-      result.push({
-        id: item.id,
-        title: item.title,
-        priority: safeText(item.priority, '中'),
-        date: normalizeDateInput(safeText(item.date, getToday())),
-        startTime: safeText(item.startTime, '未设置'),
-        endTime: safeText(item.endTime, '未设置'),
-        done: item.done,
-        createDate: safeText(item.createDate, getToday())
-      })
-    })
-    return result
+    this.tasks = result.tasks
+    this.taskNextId = result.taskNextId
+    this.notes = result.notes
+    this.noteNextId = result.noteNextId
+    this.checks = result.checks
+    this.checkNextId = result.checkNextId
   }
 
   async saveTasks(): Promise<void> {
-    if (this.dataPreferences === null) {
-      await this.initPreferences()
-    }
-
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    await this.dataPreferences.put(this.TASKS_KEY, JSON.stringify(this.tasks))
-    await this.dataPreferences.put(this.TASK_NEXT_ID_KEY, this.taskNextId)
-    await this.dataPreferences.flush()
+    await PlanStorageService.saveTasks(this.context, this.tasks, this.taskNextId)
   }
 
-  getFilteredTasks(): TodoTask[] {
-    if (this.taskSearchText.trim().length === 0) {
-      return this.tasks
+  async saveNotes(): Promise<void> {
+    await PlanStorageService.saveNotes(this.context, this.notes, this.noteNextId)
+  }
+
+  async saveChecks(): Promise<void> {
+    await PlanStorageService.saveChecks(this.context, this.checks, this.checkNextId)
+  }
+
+  getFilterOptions(): string[] {
+    return ['All', 'Task', 'Note', 'Check']
+  }
+
+  getPlanTypeTitle(type: string): string {
+    if (type === 'Task') {
+      return '待办'
+    }
+    if (type === 'Note') {
+      return '便签'
+    }
+    if (type === 'Check') {
+      return '打卡'
+    }
+    return '全部'
+  }
+
+  getPlanTypeTag(type: string): string {
+    if (type === 'Task') {
+      return '待办'
+    }
+    if (type === 'Note') {
+      return '便签'
+    }
+    if (type === 'Check') {
+      return '打卡'
+    }
+    return 'Plan'
+  }
+
+  getPlanTypeColor(type: string): string {
+    if (type === 'Task') {
+      return this.themeColor
+    }
+    if (type === 'Note') {
+      return AppColors.GREEN
+    }
+    if (type === 'Check') {
+      return AppColors.RED
+    }
+    return AppColors.GRAY_900
+  }
+
+  getPlanTypeBgColor(type: string): string {
+    if (type === 'Task') {
+      return AppColors.INDIGO_50
+    }
+    if (type === 'Note') {
+      return AppColors.GREEN_100
+    }
+    if (type === 'Check') {
+      return AppColors.RED_100
+    }
+    return AppColors.GRAY_100
+  }
+
+  getTitlePlaceholder(): string {
+    if (this.createPlanType === 'Task') {
+      return '请输入待办名称，例如：完成课程报告'
+    }
+    if (this.createPlanType === 'Note') {
+      return '请输入便签标题'
+    }
+    return '请输入打卡名称，例如：背单词'
+  }
+
+  getPriorityColor(priority: string): string {
+    if (priority === '高') {
+      return AppColors.RED
     }
 
-    let keyword = this.taskSearchText.trim().toLowerCase()
+    if (priority === '中') {
+      return this.themeColor
+    }
 
+    return AppColors.GREEN
+  }
+
+  getPlanTotalCount(): number {
+    return this.tasks.length + this.notes.length + this.checks.length
+  }
+
+  getDoneCount(): number {
     return this.tasks.filter((item: TodoTask) => {
-      return item.title.toLowerCase().includes(keyword)
-        || item.priority.toLowerCase().includes(keyword)
-        || item.date.toLowerCase().includes(keyword)
-        || item.startTime.toLowerCase().includes(keyword)
-        || item.endTime.toLowerCase().includes(keyword)
+      return item.done
+    }).length
+  }
+
+  getUndoneCount(): number {
+    return this.tasks.filter((item: TodoTask) => {
+      return !item.done
+    }).length
+  }
+
+  getTodayCheckedCount(): number {
+    return this.checks.filter((item: HabitData) => {
+      return this.isCheckCheckedToday(item)
+    }).length
+  }
+
+  getFilteredPlanItems(): PlanDisplayItem[] {
+    let list: PlanDisplayItem[] = []
+
+    this.tasks.forEach((task: TodoTask) => {
+      list.push({
+        id: task.id,
+        planType: 'Task',
+        title: task.title,
+        date: task.date,
+        startTime: task.startTime,
+        endTime: task.endTime,
+        summary: '优先级：' + safeText(task.priority, '中'),
+        statusText: task.done ? '已完成' : '未完成',
+        done: task.done,
+        createDate: task.createDate
+      })
     })
+
+    this.notes.forEach((note: NoteItem) => {
+      list.push({
+        id: note.id,
+        planType: 'Note',
+        title: note.title,
+        date: note.date,
+        startTime: note.startTime,
+        endTime: note.endTime,
+        summary: '分类：' + safeText(note.category, '默认') + '；内容：' + safeText(note.content, '暂无内容'),
+        statusText: '便签',
+        done: false,
+        createDate: note.createDate
+      })
+    })
+
+    this.checks.forEach((check: HabitData) => {
+      list.push({
+        id: check.id,
+        planType: 'Check',
+        title: check.title,
+        date: check.date,
+        startTime: check.startTime,
+        endTime: check.endTime,
+        summary: '目标：' + safeText(check.target, '每日坚持完成') + '；已打卡：' + check.days.toString() + '/' + check.targetDays.toString() + ' 天',
+        statusText: this.isCheckCheckedToday(check) ? '已打卡' : '未打卡',
+        done: this.isCheckCheckedToday(check),
+        createDate: check.createDate
+      })
+    })
+
+    if (this.filterPlanType !== 'All') {
+      list = list.filter((item: PlanDisplayItem) => {
+        return item.planType === this.filterPlanType
+      })
+    }
+
+    if (this.planSearchText.trim().length > 0) {
+      let keyword = this.planSearchText.trim().toLowerCase()
+      list = list.filter((item: PlanDisplayItem) => {
+        return item.title.toLowerCase().includes(keyword)
+          || item.summary.toLowerCase().includes(keyword)
+          || item.date.toLowerCase().includes(keyword)
+          || item.startTime.toLowerCase().includes(keyword)
+          || item.endTime.toLowerCase().includes(keyword)
+          || item.planType.toLowerCase().includes(keyword)
+      })
+    }
+
+    list.sort((a: PlanDisplayItem, b: PlanDisplayItem) => {
+      if (a.date > b.date) {
+        return -1
+      }
+      if (a.date < b.date) {
+        return 1
+      }
+      if (a.startTime > b.startTime) {
+        return -1
+      }
+      if (a.startTime < b.startTime) {
+        return 1
+      }
+      return 0
+    })
+
+    return list
+  }
+
+  addPlan(): void {
+    if (this.createPlanType === 'Task') {
+      this.addTask()
+    } else if (this.createPlanType === 'Note') {
+      this.addNote()
+    } else {
+      this.addCheck()
+    }
   }
 
   addTask(): void {
-    if (this.taskTitle.trim().length === 0) {
+    if (this.planTitle.trim().length === 0) {
       return
     }
 
     let newTask: TodoTask = {
       id: this.taskNextId,
-      title: this.taskTitle,
-      priority: this.taskPriority.trim().length === 0 ? '中' : this.taskPriority,
-      date: normalizeDateInput(this.taskDate),
-      startTime: this.taskStartTime.trim().length === 0 ? '未设置' : this.taskStartTime,
-      endTime: this.taskEndTime.trim().length === 0 ? '未设置' : this.taskEndTime,
+      title: this.planTitle,
+      priority: this.taskPriority,
+      date: normalizeDateInput(this.planDate),
+      startTime: this.planStartTime.trim().length === 0 ? '未设置' : this.planStartTime,
+      endTime: this.planEndTime.trim().length === 0 ? '未设置' : this.planEndTime,
       done: false,
       createDate: getToday()
     }
 
     this.tasks = [newTask, ...this.tasks]
     this.taskNextId = this.taskNextId + 1
-
-    this.taskTitle = ''
-    this.taskPriority = ''
-    this.taskDate = getToday()
-    this.taskStartTime = ''
-    this.taskEndTime = ''
-    this.showTaskDatePicker = false
-    this.showAddPanel = false
+    this.resetCreateForm()
 
     this.saveTasks().then(() => {
-      console.info('待办保存成功')
+      console.info('Task 保存成功')
     }).catch(() => {
-      console.error('待办保存失败')
+      console.error('Task 保存失败')
     })
+  }
+
+  addNote(): void {
+    if (this.planTitle.trim().length === 0) {
+      return
+    }
+
+    let newNote: NoteItem = {
+      id: this.noteNextId,
+      title: this.planTitle,
+      content: this.noteContent.trim().length === 0 ? '暂无内容' : this.noteContent,
+      category: this.noteCategory.trim().length === 0 ? '默认' : this.noteCategory,
+      date: normalizeDateInput(this.planDate),
+      startTime: this.planStartTime.trim().length === 0 ? '未设置' : this.planStartTime,
+      endTime: this.planEndTime.trim().length === 0 ? '未设置' : this.planEndTime,
+      createDate: getToday()
+    }
+
+    this.notes = [newNote, ...this.notes]
+    this.noteNextId = this.noteNextId + 1
+    this.resetCreateForm()
+
+    this.saveNotes().then(() => {
+      console.info('Note 保存成功')
+    }).catch(() => {
+      console.error('Note 保存失败')
+    })
+  }
+
+  addCheck(): void {
+    if (this.planTitle.trim().length === 0) {
+      return
+    }
+
+    let newCheck: HabitData = {
+      id: this.checkNextId,
+      title: this.planTitle,
+      target: this.checkTarget.trim().length === 0 ? '每日坚持完成' : this.checkTarget,
+      days: 0,
+      targetDays: this.parseTargetDays(this.checkTargetDaysText),
+      date: normalizeDateInput(this.planDate),
+      startTime: this.planStartTime.trim().length === 0 ? '未设置' : this.planStartTime,
+      endTime: this.planEndTime.trim().length === 0 ? '未设置' : this.planEndTime,
+      checkedDate: '',
+      checkedDates: [],
+      createDate: getToday()
+    }
+
+    this.checks = [newCheck, ...this.checks]
+    this.checkNextId = this.checkNextId + 1
+    this.resetCreateForm()
+
+    this.saveChecks().then(() => {
+      console.info('Check 保存成功')
+    }).catch(() => {
+      console.error('Check 保存失败')
+    })
+  }
+
+  resetCreateForm(): void {
+    this.planTitle = ''
+    this.planDate = getToday()
+    this.planStartTime = ''
+    this.planEndTime = ''
+
+    this.taskPriority = '中'
+
+    this.noteContent = ''
+    this.noteCategory = ''
+
+    this.checkTarget = ''
+    this.checkTargetDaysText = ''
+
+    this.showAddPanel = false
+  }
+
+  parseTargetDays(value: string): number {
+    let parsed = Number(value)
+    if (isNaN(parsed) || parsed <= 0) {
+      return 30
+    }
+
+    return Math.floor(parsed)
   }
 
   toggleTask(id: number): void {
@@ -600,10 +941,85 @@ export struct PlanPage {
     this.tasks = newTasks
 
     this.saveTasks().then(() => {
-      console.info('待办完成状态已保存')
+      console.info('Task 状态已保存')
     }).catch(() => {
-      console.error('待办完成状态保存失败')
+      console.error('Task 状态保存失败')
     })
+  }
+
+  toggleCheck(id: number): void {
+    let today = getToday()
+    let newChecks: HabitData[] = []
+
+    this.checks.forEach((item: HabitData) => {
+      let checkedList: string[] = []
+
+      if (item.checkedDates !== undefined && item.checkedDates !== null) {
+        item.checkedDates.forEach((dateText: string) => {
+          if (checkedList.indexOf(dateText) < 0) {
+            checkedList.push(dateText)
+          }
+        })
+      }
+
+      if (item.id === id) {
+        let alreadyChecked = checkedList.indexOf(today) >= 0
+
+        if (alreadyChecked) {
+          checkedList = checkedList.filter((dateText: string) => {
+            return dateText !== today
+          })
+        } else {
+          checkedList.push(today)
+        }
+
+        newChecks.push({
+          id: item.id,
+          title: item.title,
+          target: item.target,
+          days: checkedList.length,
+          targetDays: item.targetDays,
+          date: item.date,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          checkedDate: alreadyChecked ? '' : today,
+          checkedDates: checkedList,
+          createDate: item.createDate
+        })
+      } else {
+        newChecks.push({
+          id: item.id,
+          title: item.title,
+          target: item.target,
+          days: item.days,
+          targetDays: item.targetDays,
+          date: item.date,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          checkedDate: item.checkedDate,
+          checkedDates: checkedList,
+          createDate: item.createDate
+        })
+      }
+    })
+
+    this.checks = newChecks
+
+    this.saveChecks().then(() => {
+      console.info('Check 打卡状态已保存')
+    }).catch(() => {
+      console.error('Check 打卡状态保存失败')
+    })
+  }
+
+  deletePlanItem(planType: string, id: number): void {
+    if (planType === 'Task') {
+      this.deleteTask(id)
+    } else if (planType === 'Note') {
+      this.deleteNote(id)
+    } else if (planType === 'Check') {
+      this.deleteCheck(id)
+    }
   }
 
   deleteTask(id: number): void {
@@ -612,148 +1028,91 @@ export struct PlanPage {
     })
 
     this.saveTasks().then(() => {
-      console.info('待办删除后已保存')
+      console.info('Task 删除后已保存')
     }).catch(() => {
-      console.error('待办删除后保存失败')
+      console.error('Task 删除后保存失败')
     })
   }
 
-  getDoneCount(): number {
-    return this.tasks.filter((item: TodoTask) => {
-      return item.done
-    }).length
+  deleteNote(id: number): void {
+    this.notes = this.notes.filter((item: NoteItem) => {
+      return item.id !== id
+    })
+
+    this.saveNotes().then(() => {
+      console.info('Note 删除后已保存')
+    }).catch(() => {
+      console.error('Note 删除后保存失败')
+    })
   }
 
-  getUndoneCount(): number {
-    return this.tasks.filter((item: TodoTask) => {
-      return !item.done
-    }).length
+  deleteCheck(id: number): void {
+    this.checks = this.checks.filter((item: HabitData) => {
+      return item.id !== id
+    })
+
+    this.saveChecks().then(() => {
+      console.info('Check 删除后已保存')
+    }).catch(() => {
+      console.error('Check 删除后保存失败')
+    })
   }
 
-  getWeekTitles(): string[] {
-    return ['日', '一', '二', '三', '四', '五', '六']
-  }
-
-  getPickerDays(): CalendarSelectDay[] {
-    let list: CalendarSelectDay[] = []
-
-    let firstWeek = new Date(this.pickerYear, this.pickerMonth - 1, 1).getDay()
-    let daysInMonth = new Date(this.pickerYear, this.pickerMonth, 0).getDate()
-
-    let prevYear = this.pickerMonth === 1 ? this.pickerYear - 1 : this.pickerYear
-    let prevMonth = this.pickerMonth === 1 ? 12 : this.pickerMonth - 1
-    let nextYear = this.pickerMonth === 12 ? this.pickerYear + 1 : this.pickerYear
-    let nextMonth = this.pickerMonth === 12 ? 1 : this.pickerMonth + 1
-    let daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate()
-
-    let realCellCount = firstWeek + daysInMonth
-    let rowCount = Math.ceil(realCellCount / 7)
-
-    if (rowCount < 5) {
-      rowCount = 5
+  isCheckCheckedToday(check: HabitData): boolean {
+    if (check.checkedDates !== undefined && check.checkedDates !== null) {
+      return check.checkedDates.indexOf(getToday()) >= 0
     }
+    return check.checkedDate === getToday()
+  }
 
-    let totalCells = rowCount * 7
+  isCheckCheckedTodayById(id: number): boolean {
+    let result = false
 
-    for (let i = 0; i < totalCells; i++) {
-      let finalYear = this.pickerYear
-      let finalMonth = this.pickerMonth
-      let finalDay = 1
-      let isCurrent = true
-
-      if (i < firstWeek) {
-        finalYear = prevYear
-        finalMonth = prevMonth
-        finalDay = daysInPrevMonth - firstWeek + i + 1
-        isCurrent = false
-      } else if (i >= firstWeek + daysInMonth) {
-        finalYear = nextYear
-        finalMonth = nextMonth
-        finalDay = i - firstWeek - daysInMonth + 1
-        isCurrent = false
-      } else {
-        finalDay = i - firstWeek + 1
-        isCurrent = true
+    this.checks.forEach((item: HabitData) => {
+      if (item.id === id && this.isCheckCheckedToday(item)) {
+        result = true
       }
-
-      list.push({
-        date: this.formatPickerDate(finalYear, finalMonth, finalDay),
-        day: finalDay,
-        isCurrentMonth: isCurrent
-      })
-    }
-
-    return list
-  }
-
-  selectTaskDate(dateText: string): void {
-    this.taskDate = dateText
-    this.pickerYear = this.getYearFromDate(dateText)
-    this.pickerMonth = this.getMonthFromDate(dateText)
-
-    animateTo({
-      duration: 180,
-      curve: Curve.EaseOut
-    }, () => {
-      this.showTaskDatePicker = false
     })
+
+    return result
   }
 
-  goPreviousPickerMonth(): void {
-    if (this.pickerMonth === 1) {
-      this.pickerYear = this.pickerYear - 1
-      this.pickerMonth = 12
-    } else {
-      this.pickerMonth = this.pickerMonth - 1
+  getCheckProgressValue(check: HabitData): number {
+    if (check.targetDays <= 0) {
+      return 0
     }
+
+    let value = Math.round(check.days * 100 / check.targetDays)
+    if (value > 100) {
+      return 100
+    }
+
+    if (value < 0) {
+      return 0
+    }
+
+    return value
   }
 
-  goNextPickerMonth(): void {
-    if (this.pickerMonth === 12) {
-      this.pickerYear = this.pickerYear + 1
-      this.pickerMonth = 1
-    } else {
-      this.pickerMonth = this.pickerMonth + 1
-    }
+  getCheckProgressValueById(id: number): number {
+    let result = 0
+
+    this.checks.forEach((item: HabitData) => {
+      if (item.id === id) {
+        result = this.getCheckProgressValue(item)
+      }
+    })
+
+    return result
   }
 
-  getPickerDayTextColor(day: CalendarSelectDay): string {
-    if (day.date === this.taskDate) {
-      return AppColors.WHITE
-    }
-
-    if (!day.isCurrentMonth) {
-      return AppColors.GRAY_400
-    }
-
-    if (day.date === getToday()) {
-      return AppColors.BLUE
-    }
-
-    return AppColors.GRAY_900
+  getCheckProgressTextById(id: number): string {
+    return this.getCheckProgressValueById(id).toString() + '%'
   }
 
-  getYearFromDate(dateText: string): number {
-    if (dateText.length < 7) {
-      let now = new Date()
-      return now.getFullYear()
-    }
-
-    return Number(dateText.substring(0, 4))
+  getCheckProgressWidthById(id: number): string {
+    return this.getCheckProgressValueById(id).toString() + '%'
   }
 
-  getMonthFromDate(dateText: string): number {
-    if (dateText.length < 7) {
-      let now = new Date()
-      return now.getMonth() + 1
-    }
 
-    return Number(dateText.substring(5, 7))
-  }
-
-  formatPickerDate(year: number, month: number, day: number): string {
-    let monthText = month < 10 ? '0' + month.toString() : month.toString()
-    let dayText = day < 10 ? '0' + day.toString() : day.toString()
-    return year.toString() + '-' + monthText + '-' + dayText
-  }
 }

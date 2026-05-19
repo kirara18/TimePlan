@@ -54,3 +54,14 @@ export interface CalendarDay {
   itemCount: number
   doneCount: number
 }
+
+export interface FocusRecord {
+  id: number
+  taskId: number
+  taskTitle: string
+  durationMinutes: number
+  date: string
+  startTime: string
+  endTime: string
+  createTime: number
+}

@@ -10,3 +10,6 @@ export const HABITS_KEY: string = 'habit_items'
 export const HABIT_NEXT_ID_KEY: string = 'habit_items_next_id'
 
 export const THEME_KEY: string = 'app_theme_mode'
+
+export const FOCUS_RECORDS_KEY: string = 'focus_records'
+export const FOCUS_NEXT_ID_KEY: string = 'focus_records_next_id'

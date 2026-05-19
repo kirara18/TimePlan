@@ -1,3 +1,5 @@
+//本文件不再使用
+
 import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { HabitData } from '../model/AppModels'

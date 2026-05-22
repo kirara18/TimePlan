@@ -2,6 +2,7 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask, NoteItem, HabitData, CalendarItem, CalendarDay } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { EmptyState } from '../components/EmptyState'
 import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, NOTES_KEY as PLAN_NOTES_KEY, HABITS_KEY as PLAN_HABITS_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 import { safeText, getToday, formatDate, formatMonth, normalizeDateInput, getWeekTitles, getYearFromDate, getMonthFromDate, dateInList, dateToDayNumber, dayNumberToDate, buildMonthDays, SimpleCalendarDay } from '../utils/DateUtil'
@@ -26,6 +27,7 @@ export struct CalendarPage {
   @State calendarDays: CalendarDay[] = []
   @State operationTip: string = '点击日历中的日期，可查看当天详细安排'
   @State showMonthPicker: boolean = false
+  @State showDayDetail: boolean = false
   @State pickerYear: number = 2026
   refreshTimerId: number = -1
 
@@ -48,6 +50,15 @@ export struct CalendarPage {
   }
 
   build() {
+    if (this.showDayDetail) {
+      this.DayDetailPage()
+    } else {
+      this.CalendarMainPage()
+    }
+  }
+
+  @Builder
+  CalendarMainPage() {
     Scroll() {
       Column() {
         Text('日历安排')
@@ -171,27 +182,99 @@ export struct CalendarPage {
         .borderRadius(18)
         .margin({ bottom: 18 })
 
+      }
+      .width('100%')
+      .padding({ left: 20, right: 20 })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(AppColors.GRAY_BLUE_50)
+  }
+
+  @Builder
+  DayDetailPage() {
+    Scroll() {
+      Column() {
+        Row() {
+          Button('返回')
+            .width(72)
+            .height(36)
+            .fontSize(14)
+            .backgroundColor(this.themeColor)
+            .borderRadius(12)
+            .onClick(() => {
+              this.showDayDetail = false
+              this.operationTip = '点击日历中的日期，可查看当天详细安排'
+            })
+
+          Blank()
+
+          Text('当天详情')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppColors.GRAY_900)
+
+          Blank()
+
+          Text('')
+            .width(72)
+        }
+        .width('100%')
+        .margin({ top: 30, bottom: 18 })
+
         Column() {
-          Text(this.selectedDate + ' 的详细安排')
+          Text(this.selectedDate)
+            .fontSize(28)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppColors.GRAY_900)
+            .margin({ bottom: 8 })
+
+          Text('这一天共有 ' + this.getSelectedDayItems().length.toString() + ' 项安排')
+            .fontSize(15)
+            .fontColor(this.themeColor)
+        }
+        .width('100%')
+        .padding(20)
+        .backgroundColor(AppColors.WHITE)
+        .borderRadius(18)
+        .margin({ bottom: 16 })
+        .alignItems(HorizontalAlign.Start)
+
+        Column() {
+          Text('分类概览')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppColors.GRAY_900)
+            .margin({ bottom: 14 })
+
+          Row() {
+            StatBox({ themeColor: this.themeColor, title: '计划', value: this.getSelectedDayTypeCount('计划').toString() })
+            StatBox({ themeColor: this.themeColor, title: '便签', value: this.getSelectedDayTypeCount('便签').toString() })
+            StatBox({ themeColor: this.themeColor, title: '打卡', value: this.getSelectedDayTypeCount('打卡').toString() })
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+        }
+        .width('100%')
+        .padding(18)
+        .backgroundColor(AppColors.WHITE)
+        .borderRadius(18)
+        .margin({ bottom: 16 })
+
+        Column() {
+          Text('详细安排')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
           if (this.getSelectedDayItems().length === 0) {
-            Column() {
-              Text('这一天暂无安排')
-                .fontSize(16)
-                .fontColor(AppColors.GRAY_400)
-                .margin({ top: 20, bottom: 20 })
-
-              Text('请到计划、便签、打卡页新增带日期和时间的内容')
-                .fontSize(13)
-                .fontColor(AppColors.GRAY_400)
-                .margin({ bottom: 20 })
-            }
-            .width('100%')
-            .alignItems(HorizontalAlign.Center)
+            EmptyState({
+              themeColor: this.themeColor,
+              iconText: '日',
+              title: '这一天暂无安排',
+              description: '可以到计划页新增待办、便签或打卡，填写日期和时间后会自动显示在这里。'
+            })
           } else {
             ForEach(this.getSelectedDayItems(), (item: CalendarItem) => {
               this.CalendarCard(item)
@@ -333,6 +416,7 @@ export struct CalendarPage {
       this.currentMonth = getMonthFromDate(day.date)
       this.updateCalendarDays()
       this.operationTip = '已选择：' + day.date
+      this.showDayDetail = true
     })
   }
 
@@ -551,6 +635,12 @@ export struct CalendarPage {
 
     this.selectedDate = formatDate(this.currentYear, this.currentMonth, 1)
     this.updateCalendarDays()
+  }
+
+  getSelectedDayTypeCount(type: string): number {
+    return this.getSelectedDayItems().filter((item: CalendarItem) => {
+      return item.type === type
+    }).length
   }
 
   getSelectedDayItems(): CalendarItem[] {

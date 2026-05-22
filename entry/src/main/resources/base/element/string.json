@@ -1,16 +1,20 @@
 {
   "string": [
     {
+      "name": "app_name",
+      "value": "全时计划"
+    },
+    {
       "name": "module_desc",
-      "value": "module description"
+      "value": "全时计划主模块"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "全时计划应用入口"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "全时计划"
     }
   ]
 }

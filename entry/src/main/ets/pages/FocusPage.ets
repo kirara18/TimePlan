@@ -2,6 +2,7 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask, FocusRecord } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { EmptyState } from '../components/EmptyState'
 import { getToday, safeText } from '../utils/DateUtil'
 import {
   TASKS_KEY as PLAN_TASKS_KEY,
@@ -187,11 +188,12 @@ export struct FocusPage {
           this.FreeFocusItem()
 
           if (this.tasks.length === 0) {
-            Text('暂无待办，也可以直接使用自由专注')
-              .fontSize(15)
-              .fontColor(AppColors.GRAY_400)
-              .width('100%')
-              .padding(12)
+            EmptyState({
+              themeColor: this.themeColor,
+              iconText: '专',
+              title: '暂无可绑定待办',
+              description: '你仍然可以直接使用自由专注，也可以先到计划页创建待办。'
+            })
           } else {
             ForEach(this.tasks, (task: TodoTask) => {
               this.TaskSelectItem(task)
@@ -212,11 +214,12 @@ export struct FocusPage {
             .margin({ bottom: 12 })
 
           if (this.getTodayRecords().length === 0) {
-            Text('今天还没有专注记录')
-              .fontSize(15)
-              .fontColor(AppColors.GRAY_400)
-              .width('100%')
-              .padding(12)
+            EmptyState({
+              themeColor: this.themeColor,
+              iconText: '钟',
+              title: '今天还没有专注记录',
+              description: '完成一次专注后，记录会自动显示在这里。'
+            })
           } else {
             ForEach(this.getTodayRecords(), (record: FocusRecord) => {
               this.FocusRecordItem(record)

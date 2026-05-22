@@ -2,7 +2,7 @@ import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
 import { TodoTask, NoteItem, HabitData, FocusRecord } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
-import { getToday, dateToDayNumber, safeText } from '../utils/DateUtil'
+import { getToday, dateToDayNumber, safeText, normalizeDateInput } from '../utils/DateUtil'
 import {
   TASKS_KEY as PLAN_TASKS_KEY,
   NOTES_KEY as PLAN_NOTES_KEY,
@@ -28,13 +28,22 @@ export struct ReviewPage {
   @State notes: NoteItem[] = []
   @State checks: HabitData[] = []
   @State focusRecords: FocusRecord[] = []
+  @State syncTip: string = '统计数据会自动同步'
+
+  refreshTimerId: number = -1
 
   aboutToAppear(): void {
     this.initPreferencesAndLoad().then(() => {
+      this.startAutoRefresh()
       console.info('统计页数据加载完成')
     }).catch(() => {
+      this.syncTip = '统计页数据加载失败'
       console.error('统计页数据加载失败')
     })
+  }
+
+  aboutToDisappear(): void {
+    this.stopAutoRefresh()
   }
 
   build() {
@@ -49,6 +58,11 @@ export struct ReviewPage {
         Text('查看计划完成、打卡坚持和专注情况')
           .fontSize(15)
           .fontColor(AppColors.GRAY_500)
+          .margin({ bottom: 8 })
+
+        Text(this.syncTip)
+          .fontSize(13)
+          .fontColor(this.themeColor)
           .margin({ bottom: 20 })
 
         Column() {
@@ -96,10 +110,10 @@ export struct ReviewPage {
 
           Row() {
             Row() {}
-              .width(this.getTaskRateText())
-              .height(8)
-              .backgroundColor(this.themeColor)
-              .borderRadius(4)
+            .width(this.getTaskRateText())
+            .height(8)
+            .backgroundColor(this.themeColor)
+            .borderRadius(4)
           }
           .width('100%')
           .height(8)
@@ -155,7 +169,7 @@ export struct ReviewPage {
           } else {
             ForEach(this.checks, (check: HabitData) => {
               this.CheckReviewItem(check)
-            }, (check: HabitData) => check.id.toString() + '_' + check.days.toString())
+            }, (check: HabitData) => check.id.toString() + '_' + check.days.toString() + '_' + check.checkedDates.length.toString() + '_' + this.isCheckCheckedToday(check).toString())
           }
         }
         .width('100%')
@@ -218,10 +232,10 @@ export struct ReviewPage {
 
       Row() {
         Row() {}
-          .width(this.getCheckProgressWidth(check))
-          .height(6)
-          .backgroundColor(AppColors.GREEN)
-          .borderRadius(3)
+        .width(this.getCheckProgressWidth(check))
+        .height(6)
+        .backgroundColor(AppColors.GREEN)
+        .borderRadius(3)
       }
       .width('100%')
       .height(6)
@@ -253,15 +267,44 @@ export struct ReviewPage {
     this.dataPreferences = await getTimePlanPreferences(this.context)
   }
 
+  startAutoRefresh(): void {
+    if (this.refreshTimerId !== -1) {
+      return
+    }
+
+    this.refreshTimerId = setInterval(() => {
+      this.loadAllData().then(() => {
+        this.syncTip = '统计数据已自动同步'
+      }).catch(() => {
+        this.syncTip = '统计数据同步失败'
+      })
+    }, 800)
+  }
+
+  stopAutoRefresh(): void {
+    if (this.refreshTimerId !== -1) {
+      clearInterval(this.refreshTimerId)
+      this.refreshTimerId = -1
+    }
+  }
+
   async loadAllData(): Promise<void> {
+    // 每次都重新获取 Preferences，避免统计页读取到旧缓存。
+    this.dataPreferences = await getTimePlanPreferences(this.context)
+
     if (this.dataPreferences === null) {
       return
     }
 
+    let loadedTasks: TodoTask[] = []
+    let loadedNotes: NoteItem[] = []
+    let loadedChecks: HabitData[] = []
+    let loadedFocusRecords: FocusRecord[] = []
+
     let tasksValue = await this.dataPreferences.get(this.TASKS_KEY, '')
     if (typeof tasksValue === 'string' && tasksValue.length > 0) {
       try {
-        this.tasks = JSON.parse(tasksValue) as TodoTask[]
+        loadedTasks = this.normalizeTasks(JSON.parse(tasksValue) as TodoTask[])
       } catch (err) {
         console.error('统计页读取待办失败')
       }
@@ -270,7 +313,7 @@ export struct ReviewPage {
     let notesValue = await this.dataPreferences.get(this.NOTES_KEY, '')
     if (typeof notesValue === 'string' && notesValue.length > 0) {
       try {
-        this.notes = JSON.parse(notesValue) as NoteItem[]
+        loadedNotes = this.normalizeNotes(JSON.parse(notesValue) as NoteItem[])
       } catch (err) {
         console.error('统计页读取便签失败')
       }
@@ -279,7 +322,7 @@ export struct ReviewPage {
     let checksValue = await this.dataPreferences.get(this.HABITS_KEY, '')
     if (typeof checksValue === 'string' && checksValue.length > 0) {
       try {
-        this.checks = JSON.parse(checksValue) as HabitData[]
+        loadedChecks = this.normalizeChecks(JSON.parse(checksValue) as HabitData[])
       } catch (err) {
         console.error('统计页读取打卡失败')
       }
@@ -288,11 +331,123 @@ export struct ReviewPage {
     let recordsValue = await this.dataPreferences.get(this.FOCUS_RECORDS_KEY, '')
     if (typeof recordsValue === 'string' && recordsValue.length > 0) {
       try {
-        this.focusRecords = JSON.parse(recordsValue) as FocusRecord[]
+        loadedFocusRecords = this.normalizeFocusRecords(JSON.parse(recordsValue) as FocusRecord[])
       } catch (err) {
         console.error('统计页读取专注记录失败')
       }
     }
+
+    this.tasks = loadedTasks
+    this.notes = loadedNotes
+    this.checks = loadedChecks
+    this.focusRecords = loadedFocusRecords
+  }
+
+  normalizeTasks(list: TodoTask[]): TodoTask[] {
+    let result: TodoTask[] = []
+
+    list.forEach((item: TodoTask) => {
+      result.push({
+        id: item.id,
+        title: safeText(item.title, '未命名待办'),
+        priority: safeText(item.priority, '中'),
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
+        done: item.done === true,
+        createDate: normalizeDateInput(safeText(item.createDate, getToday()))
+      })
+    })
+
+    return result
+  }
+
+  normalizeNotes(list: NoteItem[]): NoteItem[] {
+    let result: NoteItem[] = []
+
+    list.forEach((item: NoteItem) => {
+      result.push({
+        id: item.id,
+        title: safeText(item.title, '未命名便签'),
+        content: safeText(item.content, '暂无内容'),
+        category: safeText(item.category, '默认'),
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
+        createDate: normalizeDateInput(safeText(item.createDate, safeText(item.date, getToday())))
+      })
+    })
+
+    return result
+  }
+
+  normalizeChecks(list: HabitData[]): HabitData[] {
+    let result: HabitData[] = []
+
+    list.forEach((item: HabitData) => {
+      let finalCheckedDates: string[] = []
+
+      if (item.checkedDates !== undefined && item.checkedDates !== null) {
+        item.checkedDates.forEach((dateText: string) => {
+          let normalizedDate = normalizeDateInput(dateText)
+          if (finalCheckedDates.indexOf(normalizedDate) < 0) {
+            finalCheckedDates.push(normalizedDate)
+          }
+        })
+      }
+
+      if (item.checkedDate !== undefined && item.checkedDate !== null && item.checkedDate.length > 0) {
+        let normalizedDate = normalizeDateInput(item.checkedDate)
+        if (finalCheckedDates.indexOf(normalizedDate) < 0) {
+          finalCheckedDates.push(normalizedDate)
+        }
+      }
+
+      let finalTargetDays = 30
+      if (typeof item.targetDays === 'number' && item.targetDays > 0) {
+        finalTargetDays = item.targetDays
+      }
+
+      let finalDays = item.days
+      if (finalCheckedDates.length > finalDays) {
+        finalDays = finalCheckedDates.length
+      }
+
+      result.push({
+        id: item.id,
+        title: safeText(item.title, '未命名打卡'),
+        target: safeText(item.target, '每日坚持完成'),
+        days: finalDays,
+        targetDays: finalTargetDays,
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
+        checkedDate: safeText(item.checkedDate, ''),
+        checkedDates: finalCheckedDates,
+        createDate: normalizeDateInput(safeText(item.createDate, getToday()))
+      })
+    })
+
+    return result
+  }
+
+  normalizeFocusRecords(list: FocusRecord[]): FocusRecord[] {
+    let result: FocusRecord[] = []
+
+    list.forEach((item: FocusRecord) => {
+      result.push({
+        id: item.id,
+        taskId: item.taskId,
+        taskTitle: safeText(item.taskTitle, '自由专注'),
+        durationMinutes: item.durationMinutes,
+        date: normalizeDateInput(safeText(item.date, getToday())),
+        startTime: safeText(item.startTime, '未设置'),
+        endTime: safeText(item.endTime, '未设置'),
+        createTime: item.createTime
+      })
+    })
+
+    return result
   }
 
   getDoneTaskCount(): number {
@@ -323,7 +478,7 @@ export struct ReviewPage {
     if (check.checkedDates !== undefined && check.checkedDates !== null) {
       return check.checkedDates.indexOf(getToday()) >= 0
     }
-    return check.checkedDate === getToday()
+    return normalizeDateInput(safeText(check.checkedDate, '')) === getToday()
   }
 
   getTodayCheckedCount(): number {

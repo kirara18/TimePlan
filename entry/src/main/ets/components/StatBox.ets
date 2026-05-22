@@ -22,5 +22,6 @@ export struct StatBox {
     .justifyContent(FlexAlign.Center)
     .backgroundColor(AppColors.BLUE_50)
     .borderRadius(14)
+    .shadow({ radius: 8, color: '#11000000', offsetX: 0, offsetY: 3 })
   }
 }

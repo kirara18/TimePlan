@@ -1,9 +1,21 @@
 import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
-import { TodoTask, NoteItem, HabitData } from '../model/AppModels'
 import { SettingItem } from '../components/SettingItem'
-import { getToday } from '../utils/DateUtil'
-import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY, NOTES_KEY as PLAN_NOTES_KEY, NOTE_NEXT_ID_KEY as PLAN_NOTE_NEXT_ID_KEY, HABITS_KEY as PLAN_HABITS_KEY, HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY, THEME_KEY as PLAN_THEME_KEY } from '../utils/StoreConstants'
+import { PrivacyPolicyPage } from './PrivacyPolicyPage'
+import { UserAgreementPage } from './UserAgreementPage'
+import { AboutAppPage } from './AboutAppPage'
+import {
+  STORE_NAME as TIME_PLAN_STORE_NAME,
+  TASKS_KEY as PLAN_TASKS_KEY,
+  TASK_NEXT_ID_KEY as PLAN_TASK_NEXT_ID_KEY,
+  NOTES_KEY as PLAN_NOTES_KEY,
+  NOTE_NEXT_ID_KEY as PLAN_NOTE_NEXT_ID_KEY,
+  HABITS_KEY as PLAN_HABITS_KEY,
+  HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY,
+  FOCUS_RECORDS_KEY as PLAN_FOCUS_RECORDS_KEY,
+  FOCUS_NEXT_ID_KEY as PLAN_FOCUS_NEXT_ID_KEY,
+  THEME_KEY as PLAN_THEME_KEY
+} from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 import { AppColors } from '../utils/AppColors'
 
@@ -19,36 +31,62 @@ export struct MinePage {
 
   readonly TASKS_KEY: string = PLAN_TASKS_KEY
   readonly TASK_NEXT_ID_KEY: string = PLAN_TASK_NEXT_ID_KEY
+
   readonly NOTES_KEY: string = PLAN_NOTES_KEY
   readonly NOTE_NEXT_ID_KEY: string = PLAN_NOTE_NEXT_ID_KEY
+
   readonly HABITS_KEY: string = PLAN_HABITS_KEY
   readonly HABIT_NEXT_ID_KEY: string = PLAN_HABIT_NEXT_ID_KEY
+
+  readonly FOCUS_RECORDS_KEY: string = PLAN_FOCUS_RECORDS_KEY
+  readonly FOCUS_NEXT_ID_KEY: string = PLAN_FOCUS_NEXT_ID_KEY
+
   readonly THEME_KEY: string = PLAN_THEME_KEY
 
-  @State taskCount: number = 0
-  @State doneTaskCount: number = 0
-  @State undoneTaskCount: number = 0
-  @State noteCount: number = 0
-  @State habitCount: number = 0
-  @State todayCheckedHabitCount: number = 0
   @State themeMode: string = '默认蓝色'
-  @State operationTip: string = '已进入进阶版：日历汇总 + 时间字段'
-  refreshTimerId: number = -1
+  @State operationTip: string = '已新增隐私政策、用户协议和关于应用页面'
+  @State currentInfoPage: string = 'main'
+  @State showClearConfirm: boolean = false
 
   aboutToAppear(): void {
     this.initPreferencesAndLoad().then(() => {
-      this.startAutoRefresh()
+      console.info('我的页数据加载完成')
     }).catch(() => {
       this.operationTip = '我的页数据加载失败'
     })
   }
 
-  aboutToDisappear(): void {
-    this.stopAutoRefresh()
+  build() {
+    if (this.currentInfoPage === 'privacy') {
+      PrivacyPolicyPage({
+        themeColor: this.themeColor,
+        onBack: () => {
+          this.currentInfoPage = 'main'
+        }
+      })
+    } else if (this.currentInfoPage === 'agreement') {
+      UserAgreementPage({
+        themeColor: this.themeColor,
+        onBack: () => {
+          this.currentInfoPage = 'main'
+        }
+      })
+    } else if (this.currentInfoPage === 'about') {
+      AboutAppPage({
+        themeColor: this.themeColor,
+        onBack: () => {
+          this.currentInfoPage = 'main'
+        }
+      })
+    } else {
+      this.MainContent()
+    }
   }
 
-  build() {
-    Scroll() {
+  @Builder
+  MainContent() {
+    Stack() {
+      Scroll() {
       Column() {
         Text('我的')
           .fontSize(30)
@@ -63,7 +101,7 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 8 })
 
-          Text('日历汇总计划、便签、打卡，支持本地存储和主题切换')
+          Text('日历汇总计划、便签、打卡，支持专注记录、统计分析和主题切换')
             .fontSize(15)
             .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 10 })
@@ -80,18 +118,34 @@ export struct MinePage {
         .alignItems(HorizontalAlign.Start)
 
         Column() {
-          Text('详细统计')
+          Text('功能说明')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
-          SettingItem({ title: '待办任务', value: this.taskCount.toString() + ' 条' })
-          SettingItem({ title: '已完成待办', value: this.doneTaskCount.toString() + ' 条' })
-          SettingItem({ title: '未完成待办', value: this.undoneTaskCount.toString() + ' 条' })
-          SettingItem({ title: '便签数量', value: this.noteCount.toString() + ' 条' })
-          SettingItem({ title: '习惯数量', value: this.habitCount.toString() + ' 个' })
-          SettingItem({ title: '今日已打卡', value: this.todayCheckedHabitCount.toString() + ' 个' })
+          SettingItem({ title: '日历安排', value: '按月查看全部安排' })
+          SettingItem({ title: '计划管理', value: '待办、时间、完成状态' })
+          SettingItem({ title: '专注模式', value: '番茄钟与专注记录' })
+          SettingItem({ title: '统计分析', value: '已独立到统计页' })
+          SettingItem({ title: '本地存储', value: '数据保存在本机' })
+        }
+        .width('100%')
+        .padding(18)
+        .backgroundColor(AppColors.WHITE)
+        .borderRadius(18)
+        .margin({ bottom: 16 })
+
+        Column() {
+          Text('协议与说明')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppColors.GRAY_900)
+            .margin({ bottom: 12 })
+
+          this.ActionItem('隐私政策', '查看数据与权限说明', 'privacy')
+          this.ActionItem('用户协议', '查看应用使用规则', 'agreement')
+          this.ActionItem('关于应用', '版本、功能与开发说明', 'about')
         }
         .width('100%')
         .padding(18)
@@ -108,7 +162,6 @@ export struct MinePage {
 
           SettingItem({ title: '主题设置', value: this.themeMode })
           SettingItem({ title: '数据备份', value: 'Preferences 本地存储' })
-          SettingItem({ title: '关于应用', value: 'V1.1.0' })
 
           Button('切换主题偏好')
             .width('100%')
@@ -129,10 +182,12 @@ export struct MinePage {
             .fontWeight(FontWeight.Bold)
             .backgroundColor(AppColors.RED)
             .borderRadius(12)
-            .margin({ bottom: 4 })
+            .margin({ bottom: 10 })
             .onClick(() => {
-              this.clearAllData()
+              this.showClearConfirm = true
+              this.operationTip = '请确认是否清空全部本地数据'
             })
+
         }
         .width('100%')
         .padding(18)
@@ -143,32 +198,111 @@ export struct MinePage {
       .width('100%')
       .padding({ left: 20, right: 20 })
     }
+      .width('100%')
+      .height('100%')
+      .backgroundColor(AppColors.GRAY_BLUE_50)
+
+      if (this.showClearConfirm) {
+        Column() {
+          Blank()
+
+          this.ClearConfirmPanel()
+
+          Blank()
+        }
+        .width('100%')
+        .height('100%')
+        .padding({ left: 24, right: 24 })
+        .backgroundColor('#66000000')
+      }
+    }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
   }
 
-  startAutoRefresh(): void {
-    if (this.refreshTimerId !== -1) {
-      return
-    }
+  @Builder
+  ClearConfirmPanel() {
+    Column() {
+      Text('确认清空全部本地数据？')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(AppColors.RED)
+        .margin({ bottom: 8 })
 
-    this.refreshTimerId = setInterval(() => {
-      this.refreshStats()
-    }, 1000)
+      Text('该操作会删除计划、便签、习惯打卡和专注记录。清空后不可恢复，请谨慎操作。')
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_500)
+        .lineHeight(22)
+        .margin({ bottom: 14 })
+
+      Row() {
+        Button('取消')
+          .layoutWeight(1)
+          .height(40)
+          .fontSize(15)
+          .backgroundColor(AppColors.GRAY_400)
+          .borderRadius(12)
+          .margin({ right: 8 })
+          .onClick(() => {
+            this.showClearConfirm = false
+            this.operationTip = '已取消清空操作'
+          })
+
+        Button('确认清空')
+          .layoutWeight(1)
+          .height(40)
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .backgroundColor(AppColors.RED)
+          .borderRadius(12)
+          .margin({ left: 8 })
+          .onClick(() => {
+            this.showClearConfirm = false
+            this.clearAllData()
+          })
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding(20)
+    .backgroundColor(AppColors.WHITE)
+    .borderRadius(20)
+    .shadow({ radius: 20, color: '#33000000', offsetX: 0, offsetY: 8 })
+    .border({ width: 1, color: '#FCA5A5' })
+    .alignItems(HorizontalAlign.Start)
   }
 
-  stopAutoRefresh(): void {
-    if (this.refreshTimerId !== -1) {
-      clearInterval(this.refreshTimerId)
-      this.refreshTimerId = -1
+  @Builder
+  ActionItem(title: string, value: string, page: string) {
+    Row() {
+      Text(title)
+        .fontSize(16)
+        .fontColor(AppColors.GRAY_900)
+
+      Blank()
+
+      Text(value)
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_500)
+
+      Text(' >')
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_400)
     }
+    .width('100%')
+    .height(54)
+    .padding({ left: 16, right: 16 })
+    .backgroundColor(AppColors.WHITE)
+    .borderRadius(14)
+    .margin({ bottom: 10 })
+    .onClick(() => {
+      this.currentInfoPage = page
+    })
   }
 
   async initPreferencesAndLoad(): Promise<void> {
     await this.initPreferences()
     await this.loadTheme()
-    await this.refreshStats()
   }
 
   async initPreferences(): Promise<void> {
@@ -188,87 +322,6 @@ export struct MinePage {
     if (typeof themeValue === 'string') {
       this.themeMode = themeValue
       this.onThemeChange(this.getThemeColorByMode(themeValue))
-    }
-  }
-
-  async refreshStats(): Promise<void> {
-    if (this.dataPreferences === null) {
-      await this.initPreferences()
-    }
-
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    await this.loadTaskStats()
-    await this.loadNoteStats()
-    await this.loadHabitStats()
-  }
-
-  async loadTaskStats(): Promise<void> {
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    let value = await this.dataPreferences.get(this.TASKS_KEY, '')
-    if (typeof value === 'string' && value.length > 0) {
-      try {
-        let list = JSON.parse(value) as TodoTask[]
-        this.taskCount = list.length
-        this.doneTaskCount = list.filter((item: TodoTask) => {
-          return item.done
-        }).length
-        this.undoneTaskCount = this.taskCount - this.doneTaskCount
-      } catch (err) {
-        this.taskCount = 0
-        this.doneTaskCount = 0
-        this.undoneTaskCount = 0
-      }
-    } else {
-      this.taskCount = 0
-      this.doneTaskCount = 0
-      this.undoneTaskCount = 0
-    }
-  }
-
-  async loadNoteStats(): Promise<void> {
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    let value = await this.dataPreferences.get(this.NOTES_KEY, '')
-    if (typeof value === 'string' && value.length > 0) {
-      try {
-        let list = JSON.parse(value) as NoteItem[]
-        this.noteCount = list.length
-      } catch (err) {
-        this.noteCount = 0
-      }
-    } else {
-      this.noteCount = 0
-    }
-  }
-
-  async loadHabitStats(): Promise<void> {
-    if (this.dataPreferences === null) {
-      return
-    }
-
-    let value = await this.dataPreferences.get(this.HABITS_KEY, '')
-    if (typeof value === 'string' && value.length > 0) {
-      try {
-        let list = JSON.parse(value) as HabitData[]
-        this.habitCount = list.length
-        this.todayCheckedHabitCount = list.filter((item: HabitData) => {
-          return item.checkedDate === getToday()
-        }).length
-      } catch (err) {
-        this.habitCount = 0
-        this.todayCheckedHabitCount = 0
-      }
-    } else {
-      this.habitCount = 0
-      this.todayCheckedHabitCount = 0
     }
   }
 
@@ -316,7 +369,7 @@ export struct MinePage {
 
   clearAllData(): void {
     this.clearAllDataAsync().then(() => {
-      this.operationTip = '本地数据已清空'
+      this.operationTip = '本地数据已清空，其他页面会自动同步为空'
     }).catch(() => {
       this.operationTip = '清空数据失败'
     })
@@ -340,14 +393,9 @@ export struct MinePage {
     await this.dataPreferences.put(this.HABITS_KEY, JSON.stringify([]))
     await this.dataPreferences.put(this.HABIT_NEXT_ID_KEY, 1)
 
+    await this.dataPreferences.put(this.FOCUS_RECORDS_KEY, JSON.stringify([]))
+    await this.dataPreferences.put(this.FOCUS_NEXT_ID_KEY, 1)
+
     await this.dataPreferences.flush()
-
-    this.taskCount = 0
-    this.doneTaskCount = 0
-    this.undoneTaskCount = 0
-    this.noteCount = 0
-    this.habitCount = 0
-    this.todayCheckedHabitCount = 0
   }
-
 }

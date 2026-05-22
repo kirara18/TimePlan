@@ -1,8 +1,9 @@
 import { common } from '@kit.AbilityKit'
 import { TodoTask, NoteItem, HabitData } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
+import { EmptyState } from '../components/EmptyState'
 import { PlanDateTimeSelector } from '../components/plan/PlanDateTimeSelector'
-import { safeText, getToday, normalizeDateInput } from '../utils/DateUtil'
+import { safeText, getToday, normalizeDateInput, dateToDayNumber, dayNumberToDate, dateInList } from '../utils/DateUtil'
 import { PlanStorageService, PlanStorageLoadResult } from '../services/PlanStorageService'
 import { AppColors } from '../utils/AppColors'
 
@@ -34,6 +35,9 @@ export struct PlanPage {
   @State planDate: string = ''
   @State planStartTime: string = ''
   @State planEndTime: string = ''
+  @State showConflictConfirm: boolean = false
+  @State conflictTitle: string = ''
+  @State conflictDetail: string = ''
 
   @State taskPriority: string = '中'
 
@@ -158,7 +162,8 @@ export struct PlanPage {
   }
 
   build() {
-    Scroll() {
+    Stack() {
+      Scroll() {
       Column() {
         Text('计划')
           .fontSize(30)
@@ -237,14 +242,12 @@ export struct PlanPage {
             .margin({ bottom: 12 })
 
           if (this.getFilteredPlanItems().length === 0) {
-            Column() {
-              Text('暂无匹配计划')
-                .fontSize(16)
-                .fontColor(AppColors.GRAY_400)
-                .margin({ top: 20, bottom: 20 })
-            }
-            .width('100%')
-            .alignItems(HorizontalAlign.Center)
+            EmptyState({
+              themeColor: this.themeColor,
+              iconText: '计',
+              title: '暂无匹配计划',
+              description: '可以点击“新增计划”创建待办、便签或打卡安排。'
+            })
           } else {
             ForEach(this.getFilteredPlanItems(), (item: PlanDisplayItem) => {
               this.PlanItemCard(item)
@@ -260,9 +263,81 @@ export struct PlanPage {
       .width('100%')
       .padding({ left: 20, right: 20 })
     }
+      .width('100%')
+      .height('100%')
+      .backgroundColor(AppColors.GRAY_BLUE_50)
+
+      if (this.showConflictConfirm) {
+        Column() {
+          Blank()
+
+          this.ConflictConfirmPanel()
+
+          Blank()
+        }
+        .width('100%')
+        .height('100%')
+        .padding({ left: 24, right: 24 })
+        .backgroundColor('#66000000')
+      }
+    }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+  }
+
+  @Builder
+  ConflictConfirmPanel() {
+    Column() {
+      Text(this.conflictTitle)
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(AppColors.RED)
+        .margin({ bottom: 8 })
+
+      Text(this.conflictDetail)
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_500)
+        .lineHeight(22)
+        .margin({ bottom: 14 })
+
+      Text('你可以返回修改时间，也可以仍然保存。')
+        .fontSize(13)
+        .fontColor(AppColors.GRAY_500)
+        .margin({ bottom: 14 })
+
+      Row() {
+        Button('返回修改')
+          .layoutWeight(1)
+          .height(40)
+          .fontSize(15)
+          .backgroundColor(AppColors.GRAY_400)
+          .borderRadius(12)
+          .margin({ right: 8 })
+          .onClick(() => {
+            this.showConflictConfirm = false
+          })
+
+        Button('仍然保存')
+          .layoutWeight(1)
+          .height(40)
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .backgroundColor(AppColors.RED)
+          .borderRadius(12)
+          .margin({ left: 8 })
+          .onClick(() => {
+            this.showConflictConfirm = false
+            this.addPlanDirectly()
+          })
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding(20)
+    .backgroundColor(AppColors.WHITE)
+    .borderRadius(20)
+    .shadow({ radius: 20, color: '#33000000', offsetX: 0, offsetY: 8 })
+    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
@@ -803,6 +878,22 @@ export struct PlanPage {
   }
 
   addPlan(): void {
+    if (this.planTitle.trim().length === 0) {
+      return
+    }
+
+    let conflicts = this.getCurrentPlanConflictTexts()
+    if (conflicts.length > 0) {
+      this.conflictTitle = '检测到时间冲突'
+      this.conflictDetail = conflicts.join('\n')
+      this.showConflictConfirm = true
+      return
+    }
+
+    this.addPlanDirectly()
+  }
+
+  addPlanDirectly(): void {
     if (this.createPlanType === 'Task') {
       this.addTask()
     } else if (this.createPlanType === 'Note') {
@@ -896,6 +987,194 @@ export struct PlanPage {
     })
   }
 
+  getCurrentPlanConflictTexts(): string[] {
+    let normalizedDate = normalizeDateInput(this.planDate)
+    let startTime = this.planStartTime.trim().length === 0 ? '未设置' : this.planStartTime
+    let endTime = this.planEndTime.trim().length === 0 ? '未设置' : this.planEndTime
+
+    if (!this.isValidTimeRange(startTime, endTime)) {
+      return []
+    }
+
+    let result: string[] = []
+    let dates = this.getCurrentPlanConflictDates(normalizedDate)
+
+    dates.forEach((dateText: string) => {
+      let dayConflicts = this.getConflictTextsByDate(dateText, startTime, endTime)
+      dayConflicts.forEach((item: string) => {
+        result.push(item)
+      })
+    })
+
+    return result
+  }
+
+  getCurrentPlanConflictDates(startDate: string): string[] {
+    let result: string[] = []
+
+    if (this.createPlanType !== 'Check') {
+      result.push(startDate)
+      return result
+    }
+
+    let targetDays = this.parseTargetDays(this.checkTargetDaysText)
+    let startIndex = dateToDayNumber(startDate)
+
+    for (let i = 0; i < targetDays; i++) {
+      result.push(dayNumberToDate(startIndex + i))
+    }
+
+    return result
+  }
+
+  getConflictTextsByDate(dateText: string, startTime: string, endTime: string): string[] {
+    let result: string[] = []
+
+    this.tasks.forEach((item: TodoTask) => {
+      if (item.date === dateText && this.isTimeOverlap(startTime, endTime, item.startTime, item.endTime)) {
+        result.push('【' + dateText + '】与待办《' + item.title + '》冲突：' + item.startTime + ' - ' + item.endTime)
+      }
+    })
+
+    this.notes.forEach((item: NoteItem) => {
+      if (item.date === dateText && this.isTimeOverlap(startTime, endTime, item.startTime, item.endTime)) {
+        result.push('【' + dateText + '】与便签《' + item.title + '》冲突：' + item.startTime + ' - ' + item.endTime)
+      }
+    })
+
+    this.checks.forEach((item: HabitData) => {
+      let scheduleDates = this.getExistingCheckScheduleDates(item)
+      if (dateInList(dateText, scheduleDates) && this.isTimeOverlap(startTime, endTime, item.startTime, item.endTime)) {
+        result.push('【' + dateText + '】与打卡《' + item.title + '》冲突：' + item.startTime + ' - ' + item.endTime)
+      }
+    })
+
+    return result
+  }
+
+  getExistingCheckScheduleDates(check: HabitData): string[] {
+    let result: string[] = []
+    let startDate = normalizeDateInput(check.date)
+    let checkedDates = this.getCheckCheckedDates(check)
+    let targetDays = check.targetDays
+
+    if (targetDays <= 0) {
+      targetDays = 30
+    }
+
+    let startIndex = dateToDayNumber(startDate)
+    let todayIndex = dateToDayNumber(getToday())
+
+    let checkedBeforeToday = 0
+    checkedDates.forEach((dateText: string) => {
+      let dateIndex = dateToDayNumber(dateText)
+      if (dateIndex >= startIndex && dateIndex < todayIndex) {
+        checkedBeforeToday = checkedBeforeToday + 1
+      }
+    })
+
+    let elapsedBeforeToday = todayIndex - startIndex
+    if (elapsedBeforeToday < 0) {
+      elapsedBeforeToday = 0
+    }
+
+    let missedBeforeToday = elapsedBeforeToday - checkedBeforeToday
+    if (missedBeforeToday < 0) {
+      missedBeforeToday = 0
+    }
+
+    let endIndex = startIndex + targetDays + missedBeforeToday - 1
+
+    if (checkedDates.length >= targetDays) {
+      let lastCheckedIndex = startIndex
+      checkedDates.forEach((dateText: string) => {
+        let dateIndex = dateToDayNumber(dateText)
+        if (dateIndex > lastCheckedIndex) {
+          lastCheckedIndex = dateIndex
+        }
+      })
+      endIndex = lastCheckedIndex
+    }
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      result.push(dayNumberToDate(i))
+    }
+
+    return result
+  }
+
+  getCheckCheckedDates(check: HabitData): string[] {
+    let result: string[] = []
+
+    if (check.checkedDates !== undefined && check.checkedDates !== null) {
+      check.checkedDates.forEach((dateText: string) => {
+        let normalizedDate = normalizeDateInput(dateText)
+        if (!dateInList(normalizedDate, result)) {
+          result.push(normalizedDate)
+        }
+      })
+    }
+
+    if (check.checkedDate !== undefined && check.checkedDate !== null && check.checkedDate.length > 0) {
+      let normalizedDate = normalizeDateInput(check.checkedDate)
+      if (!dateInList(normalizedDate, result)) {
+        result.push(normalizedDate)
+      }
+    }
+
+    return result
+  }
+
+  isValidTimeRange(startTime: string, endTime: string): boolean {
+    let start = this.timeToMinutes(startTime)
+    let end = this.timeToMinutes(endTime)
+    return start >= 0 && end >= 0 && end > start
+  }
+
+  isTimeOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
+    let aStart = this.timeToMinutes(startA)
+    let aEnd = this.timeToMinutes(endA)
+    let bStart = this.timeToMinutes(startB)
+    let bEnd = this.timeToMinutes(endB)
+
+    if (aStart < 0 || aEnd < 0 || bStart < 0 || bEnd < 0) {
+      return false
+    }
+
+    if (aEnd <= aStart || bEnd <= bStart) {
+      return false
+    }
+
+    return aStart < bEnd && bStart < aEnd
+  }
+
+  timeToMinutes(timeText: string): number {
+    let raw = safeText(timeText, '').trim()
+    if (raw.length === 0 || raw === '未设置') {
+      return -1
+    }
+
+    raw = raw.replace('：', ':')
+
+    let parts = raw.split(':')
+    if (parts.length !== 2) {
+      return -1
+    }
+
+    let hour = Number(parts[0])
+    let minute = Number(parts[1])
+
+    if (isNaN(hour) || isNaN(minute)) {
+      return -1
+    }
+
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return -1
+    }
+
+    return Math.floor(hour) * 60 + Math.floor(minute)
+  }
+
   resetCreateForm(): void {
     this.planTitle = ''
     this.planDate = getToday()
@@ -911,6 +1190,9 @@ export struct PlanPage {
     this.checkTargetDaysText = ''
 
     this.showAddPanel = false
+    this.showConflictConfirm = false
+    this.conflictTitle = ''
+    this.conflictDetail = ''
   }
 
   parseTargetDays(value: string): number {

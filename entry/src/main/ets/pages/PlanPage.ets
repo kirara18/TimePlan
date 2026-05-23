@@ -23,6 +23,7 @@ interface PlanDisplayItem {
 @Component
 export struct PlanPage {
   @Prop themeColor: string = AppColors.BLUE
+  @Prop @Watch('onDataRefreshVersionChange') dataRefreshVersion: number = 0
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
 
@@ -158,6 +159,18 @@ export struct PlanPage {
       console.info('计划页数据加载完成')
     }).catch(() => {
       console.error('计划页数据加载失败')
+    })
+  }
+
+  onDataRefreshVersionChange(): void {
+    this.loadAllPlanData().then(() => {
+      this.showAddPanel = false
+      this.showConflictConfirm = false
+      this.filterPlanType = 'All'
+      this.planSearchText = ''
+      this.resetCreateForm()
+    }).catch(() => {
+      console.error('计划页同步清空数据失败')
     })
   }
 

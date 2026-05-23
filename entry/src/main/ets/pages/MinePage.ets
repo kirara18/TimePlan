@@ -23,6 +23,7 @@ import { AppColors } from '../utils/AppColors'
 export struct MinePage {
   @Prop themeColor: string = AppColors.BLUE
   onThemeChange: (color: string) => void = (color: string) => {}
+  onDataCleared: () => void = () => {}
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -369,7 +370,8 @@ export struct MinePage {
 
   clearAllData(): void {
     this.clearAllDataAsync().then(() => {
-      this.operationTip = '本地数据已清空，其他页面会自动同步为空'
+      this.onDataCleared()
+      this.operationTip = '本地数据已清空，其他页面已同步为空'
     }).catch(() => {
       this.operationTip = '清空数据失败'
     })

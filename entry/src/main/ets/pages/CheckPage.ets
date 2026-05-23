@@ -373,23 +373,32 @@ export struct CheckPage {
   }
 
   async loadHabits(): Promise<void> {
+    this.dataPreferences = await getTimePlanPreferences(this.context)
+
     if (this.dataPreferences === null) {
+      this.habits = []
+      this.habitNextId = 1
       return
     }
 
+    let loadedHabits: HabitData[] = []
     let habitsValue = await this.dataPreferences.get(this.HABITS_KEY, '')
     if (typeof habitsValue === 'string' && habitsValue.length > 0) {
       try {
         let parsedHabits = JSON.parse(habitsValue) as HabitData[]
-        this.habits = this.normalizeHabits(parsedHabits)
+        loadedHabits = this.normalizeHabits(parsedHabits)
       } catch (err) {
         console.error('读取习惯失败')
       }
     }
 
-    let nextIdValue = await this.dataPreferences.get(this.HABIT_NEXT_ID_KEY, 4)
+    this.habits = loadedHabits
+
+    let nextIdValue = await this.dataPreferences.get(this.HABIT_NEXT_ID_KEY, 1)
     if (typeof nextIdValue === 'number') {
       this.habitNextId = nextIdValue
+    } else {
+      this.habitNextId = 1
     }
   }
 

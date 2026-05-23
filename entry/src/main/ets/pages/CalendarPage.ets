@@ -11,6 +11,7 @@ import { AppColors } from '../utils/AppColors'
 @Component
 export struct CalendarPage {
   @Prop themeColor: string = AppColors.BLUE
+  @Prop @Watch('onDataRefreshVersionChange') dataRefreshVersion: number = 0
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -47,6 +48,16 @@ export struct CalendarPage {
 
   aboutToDisappear(): void {
     this.stopAutoRefresh()
+  }
+
+  onDataRefreshVersionChange(): void {
+    this.loadCalendarItems().then(() => {
+      this.updateCalendarDays()
+      this.showDayDetail = false
+      this.operationTip = '本地数据已清空，日历已同步为空'
+    }).catch(() => {
+      this.operationTip = '日历同步失败'
+    })
   }
 
   build() {

@@ -11,6 +11,7 @@ struct Index {
   @State currentIndex: number = 0
   @State themeColor: string = AppColors.BLUE
   @State showSplash: boolean = true
+  @State dataRefreshVersion: number = 0
 
   aboutToAppear(): void {
     setTimeout(() => {
@@ -24,22 +25,34 @@ struct Index {
     } else {
       Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
       TabContent() {
-        CalendarPage({ themeColor: this.themeColor })
+        CalendarPage({
+          themeColor: this.themeColor,
+          dataRefreshVersion: this.dataRefreshVersion
+        })
       }
       .tabBar('日历')
 
       TabContent() {
-        PlanPage({ themeColor: this.themeColor })
+        PlanPage({
+          themeColor: this.themeColor,
+          dataRefreshVersion: this.dataRefreshVersion
+        })
       }
       .tabBar('计划')
 
       TabContent() {
-        FocusPage({ themeColor: this.themeColor })
+        FocusPage({
+          themeColor: this.themeColor,
+          dataRefreshVersion: this.dataRefreshVersion
+        })
       }
       .tabBar('专注')
 
       TabContent() {
-        ReviewPage({ themeColor: this.themeColor })
+        ReviewPage({
+          themeColor: this.themeColor,
+          dataRefreshVersion: this.dataRefreshVersion
+        })
       }
       .tabBar('统计')
 
@@ -48,6 +61,9 @@ struct Index {
           themeColor: this.themeColor,
           onThemeChange: (color: string) => {
             this.themeColor = color
+          },
+          onDataCleared: () => {
+            this.dataRefreshVersion = this.dataRefreshVersion + 1
           }
         })
       }

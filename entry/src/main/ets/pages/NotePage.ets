@@ -321,23 +321,32 @@ export struct NotePage {
   }
 
   async loadNotes(): Promise<void> {
+    this.dataPreferences = await getTimePlanPreferences(this.context)
+
     if (this.dataPreferences === null) {
+      this.notes = []
+      this.noteNextId = 1
       return
     }
 
+    let loadedNotes: NoteItem[] = []
     let notesValue = await this.dataPreferences.get(this.NOTES_KEY, '')
     if (typeof notesValue === 'string' && notesValue.length > 0) {
       try {
         let parsedNotes = JSON.parse(notesValue) as NoteItem[]
-        this.notes = this.normalizeNotes(parsedNotes)
+        loadedNotes = this.normalizeNotes(parsedNotes)
       } catch (err) {
         console.error('读取便签失败')
       }
     }
 
-    let nextIdValue = await this.dataPreferences.get(this.NOTE_NEXT_ID_KEY, 3)
+    this.notes = loadedNotes
+
+    let nextIdValue = await this.dataPreferences.get(this.NOTE_NEXT_ID_KEY, 1)
     if (typeof nextIdValue === 'number') {
       this.noteNextId = nextIdValue
+    } else {
+      this.noteNextId = 1
     }
   }
 

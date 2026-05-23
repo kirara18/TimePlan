@@ -15,6 +15,7 @@ import { AppColors } from '../utils/AppColors'
 @Component
 export struct FocusPage {
   @Prop themeColor: string = AppColors.BLUE
+  @Prop @Watch('onDataRefreshVersionChange') dataRefreshVersion: number = 0
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -51,6 +52,21 @@ export struct FocusPage {
 
   aboutToDisappear(): void {
     this.stopTimerOnly()
+  }
+
+  onDataRefreshVersionChange(): void {
+    this.stopTimerOnly()
+    this.isRunning = false
+    this.selectedTaskId = 0
+    this.selectedTaskTitle = '自由专注'
+    this.focusStartTime = ''
+    this.remainSeconds = this.totalSeconds
+
+    this.initPreferencesAndLoad().then(() => {
+      this.focusTip = '本地数据已清空，专注页已同步为空'
+    }).catch(() => {
+      this.focusTip = '专注页同步失败'
+    })
   }
 
   build() {
@@ -389,38 +405,52 @@ export struct FocusPage {
   }
 
   async loadTasks(): Promise<void> {
+    this.dataPreferences = await getTimePlanPreferences(this.context)
+
     if (this.dataPreferences === null) {
+      this.tasks = []
       return
     }
 
+    let loadedTasks: TodoTask[] = []
     let tasksValue = await this.dataPreferences.get(this.TASKS_KEY, '')
     if (typeof tasksValue === 'string' && tasksValue.length > 0) {
       try {
-        let parsedTasks = JSON.parse(tasksValue) as TodoTask[]
-        this.tasks = parsedTasks
+        loadedTasks = JSON.parse(tasksValue) as TodoTask[]
       } catch (err) {
         console.error('专注页读取待办失败')
       }
     }
+
+    this.tasks = loadedTasks
   }
 
   async loadFocusRecords(): Promise<void> {
+    this.dataPreferences = await getTimePlanPreferences(this.context)
+
     if (this.dataPreferences === null) {
+      this.focusRecords = []
+      this.focusNextId = 1
       return
     }
 
+    let loadedRecords: FocusRecord[] = []
     let recordsValue = await this.dataPreferences.get(this.FOCUS_RECORDS_KEY, '')
     if (typeof recordsValue === 'string' && recordsValue.length > 0) {
       try {
-        this.focusRecords = JSON.parse(recordsValue) as FocusRecord[]
+        loadedRecords = JSON.parse(recordsValue) as FocusRecord[]
       } catch (err) {
         console.error('专注记录读取失败')
       }
     }
 
+    this.focusRecords = loadedRecords
+
     let nextIdValue = await this.dataPreferences.get(this.FOCUS_NEXT_ID_KEY, 1)
     if (typeof nextIdValue === 'number') {
       this.focusNextId = nextIdValue
+    } else {
+      this.focusNextId = 1
     }
   }
 

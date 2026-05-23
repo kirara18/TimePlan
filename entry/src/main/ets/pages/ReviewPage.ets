@@ -15,6 +15,7 @@ import { AppColors } from '../utils/AppColors'
 @Component
 export struct ReviewPage {
   @Prop themeColor: string = AppColors.BLUE
+  @Prop @Watch('onDataRefreshVersionChange') dataRefreshVersion: number = 0
 
   context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext
   dataPreferences: preferences.Preferences | null = null
@@ -44,6 +45,14 @@ export struct ReviewPage {
 
   aboutToDisappear(): void {
     this.stopAutoRefresh()
+  }
+
+  onDataRefreshVersionChange(): void {
+    this.loadAllData().then(() => {
+      this.syncTip = '本地数据已清空，统计页已同步为空'
+    }).catch(() => {
+      this.syncTip = '统计页同步失败'
+    })
   }
 
   build() {

@@ -40,7 +40,7 @@ export struct UserAgreementPage {
           '我们可能根据功能变化和合规要求更新本协议。继续使用应用即表示用户了解并接受更新后的协议内容。'
         )
 
-        Text('更新日期：2026-05-22')
+        Text('更新日期：2026-05-23')
           .fontSize(13)
           .fontColor(AppColors.GRAY_400)
           .margin({ top: 10, bottom: 30 })

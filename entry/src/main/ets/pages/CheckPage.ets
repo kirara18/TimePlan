@@ -29,48 +29,8 @@ export struct CheckPage {
   @State habitStartTime: string = ''
   @State habitEndTime: string = ''
 
-  @State habitNextId: number = 4
-  @State habits: HabitData[] = [
-    {
-      id: 1,
-      title: '学习 ArkTS',
-      target: '每天学习 30 分钟',
-      days: 3,
-      targetDays: 30,
-      date: '2026-05-17',
-      startTime: '20:00',
-      endTime: '20:30',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    },
-    {
-      id: 2,
-      title: '完成项目开发',
-      target: '每天推进一个功能模块',
-      days: 2,
-      targetDays: 14,
-      date: '2026-05-17',
-      startTime: '21:00',
-      endTime: '22:00',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    },
-    {
-      id: 3,
-      title: '复盘总结',
-      target: '每天记录开发问题和收获',
-      days: 1,
-      targetDays: 7,
-      date: '2026-05-18',
-      startTime: '22:30',
-      endTime: '23:00',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    }
-  ]
+  @State habitNextId: number = 1
+  @State habits: HabitData[] = []
 
   aboutToAppear(): void {
     this.initPreferencesAndLoad().then(() => {
@@ -97,6 +57,8 @@ export struct CheckPage {
         TextInput({ text: this.habitSearchText, placeholder: '搜索习惯名称或目标...' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
@@ -152,6 +114,8 @@ export struct CheckPage {
             TextInput({ text: this.habitTitle, placeholder: '请输入习惯名称，例如：背单词' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -163,6 +127,8 @@ export struct CheckPage {
             TextInput({ text: this.habitTarget, placeholder: '请输入目标，例如：每天 20 个单词' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -174,6 +140,8 @@ export struct CheckPage {
             TextInput({ text: this.habitTargetDaysText, placeholder: '请输入计划打卡天数，例如：30' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -185,6 +153,8 @@ export struct CheckPage {
             TextInput({ text: this.habitDate, placeholder: '请输入日期，例如：2026-05-17 或 19' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -197,6 +167,8 @@ export struct CheckPage {
               TextInput({ text: this.habitStartTime, placeholder: '开始 09:00' })
                 .layoutWeight(1)
                 .height(44)
+                .fontColor(AppColors.INPUT_TEXT)
+                .placeholderColor(AppColors.INPUT_PLACEHOLDER)
                 .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
@@ -208,6 +180,8 @@ export struct CheckPage {
               TextInput({ text: this.habitEndTime, placeholder: '结束 10:00' })
                 .layoutWeight(1)
                 .height(44)
+                .fontColor(AppColors.INPUT_TEXT)
+                .placeholderColor(AppColors.INPUT_PLACEHOLDER)
                 .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })

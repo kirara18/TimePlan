@@ -29,29 +29,8 @@ export struct NotePage {
   @State noteEndTime: string = ''
   @State transferTip: string = '便签可设置日期和时间，并同步显示到日历页'
 
-  @State noteNextId: number = 3
-  @State notes: NoteItem[] = [
-    {
-      id: 1,
-      title: '课程重点',
-      content: 'ArkTS、Stage 模型、UIAbility、页面路由、Preferences 本地存储。',
-      category: '学习',
-      date: '2026-05-17',
-      startTime: '16:00',
-      endTime: '16:30',
-      createDate: '2026-05-17'
-    },
-    {
-      id: 2,
-      title: 'App 亮点',
-      content: '日历汇总、模块联动、主题切换、本地保存。',
-      category: '项目',
-      date: '2026-05-18',
-      startTime: '19:00',
-      endTime: '19:30',
-      createDate: '2026-05-17'
-    }
-  ]
+  @State noteNextId: number = 1
+  @State notes: NoteItem[] = []
 
   aboutToAppear(): void {
     this.initPreferencesAndLoad().then(() => {
@@ -83,6 +62,8 @@ export struct NotePage {
         TextInput({ text: this.noteSearchText, placeholder: '搜索便签标题、内容或分类...' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
@@ -138,6 +119,8 @@ export struct NotePage {
             TextInput({ text: this.noteTitle, placeholder: '请输入便签标题' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -149,6 +132,8 @@ export struct NotePage {
             TextInput({ text: this.noteContent, placeholder: '请输入便签内容' })
               .width('100%')
               .height(90)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -160,6 +145,8 @@ export struct NotePage {
             TextInput({ text: this.noteCategory, placeholder: '请输入分类，例如：学习 / 项目 / 生活' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -171,6 +158,8 @@ export struct NotePage {
             TextInput({ text: this.noteDate, placeholder: '请输入日期，例如：2026-05-17 或 19' })
               .width('100%')
               .height(44)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
@@ -183,6 +172,8 @@ export struct NotePage {
               TextInput({ text: this.noteStartTime, placeholder: '开始 09:00' })
                 .layoutWeight(1)
                 .height(44)
+                .fontColor(AppColors.INPUT_TEXT)
+                .placeholderColor(AppColors.INPUT_PLACEHOLDER)
                 .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
@@ -194,6 +185,8 @@ export struct NotePage {
               TextInput({ text: this.noteEndTime, placeholder: '结束 10:00' })
                 .layoutWeight(1)
                 .height(44)
+                .fontColor(AppColors.INPUT_TEXT)
+                .placeholderColor(AppColors.INPUT_PLACEHOLDER)
                 .backgroundColor(AppColors.GRAY_50)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })

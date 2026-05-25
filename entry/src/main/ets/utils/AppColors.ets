@@ -15,6 +15,10 @@ export class AppColors {
   static readonly GRAY_800: string = '#1F2937'
   static readonly GRAY_900: string = '#111827'
 
+  static readonly INPUT_BG: string = '#F9FAFB'
+  static readonly INPUT_TEXT: string = '#111827'
+  static readonly INPUT_PLACEHOLDER: string = '#9CA3AF'
+
   static readonly GREEN: string = '#22C55E'
   static readonly GREEN_50: string = '#F0FDF4'
   static readonly GREEN_100: string = '#DCFCE7'

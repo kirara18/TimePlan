@@ -48,107 +48,15 @@ export struct PlanPage {
   @State checkTarget: string = ''
   @State checkTargetDaysText: string = ''
 
-  @State taskNextId: number = 4
-  @State noteNextId: number = 3
-  @State checkNextId: number = 4
+  @State taskNextId: number = 1
+  @State noteNextId: number = 1
+  @State checkNextId: number = 1
 
-  @State tasks: TodoTask[] = [
-    {
-      id: 1,
-      title: '完成首页框架',
-      priority: '高',
-      date: '2026-05-17',
-      startTime: '09:00',
-      endTime: '10:00',
-      done: true,
-      createDate: '2026-05-17'
-    },
-    {
-      id: 2,
-      title: '开发日历安排页',
-      priority: '高',
-      date: '2026-05-17',
-      startTime: '10:30',
-      endTime: '12:00',
-      done: false,
-      createDate: '2026-05-17'
-    },
-    {
-      id: 3,
-      title: '实现计划页时间字段',
-      priority: '中',
-      date: '2026-05-18',
-      startTime: '14:00',
-      endTime: '15:00',
-      done: false,
-      createDate: '2026-05-17'
-    }
-  ]
+  @State tasks: TodoTask[] = []
 
-  @State notes: NoteItem[] = [
-    {
-      id: 1,
-      title: '课程重点',
-      content: 'ArkTS、Stage 模型、UIAbility、页面路由、Preferences 本地存储。',
-      category: '学习',
-      date: '2026-05-17',
-      startTime: '16:00',
-      endTime: '16:30',
-      createDate: '2026-05-17'
-    },
-    {
-      id: 2,
-      title: 'App 亮点',
-      content: '日历汇总、模块联动、主题切换、本地保存。',
-      category: '项目',
-      date: '2026-05-18',
-      startTime: '19:00',
-      endTime: '19:30',
-      createDate: '2026-05-17'
-    }
-  ]
+  @State notes: NoteItem[] = []
 
-  @State checks: HabitData[] = [
-    {
-      id: 1,
-      title: '学习 ArkTS',
-      target: '每天学习 30 分钟',
-      days: 3,
-      targetDays: 30,
-      date: '2026-05-17',
-      startTime: '20:00',
-      endTime: '20:30',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    },
-    {
-      id: 2,
-      title: '完成项目开发',
-      target: '每天推进一个功能模块',
-      days: 2,
-      targetDays: 14,
-      date: '2026-05-17',
-      startTime: '21:00',
-      endTime: '22:00',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    },
-    {
-      id: 3,
-      title: '复盘总结',
-      target: '每天记录开发问题和收获',
-      days: 1,
-      targetDays: 7,
-      date: '2026-05-18',
-      startTime: '22:30',
-      endTime: '23:00',
-      checkedDate: '',
-      checkedDates: [],
-      createDate: '2026-05-17'
-    }
-  ]
+  @State checks: HabitData[] = []
 
   aboutToAppear(): void {
     if (this.planDate.trim().length === 0) {
@@ -187,6 +95,8 @@ export struct PlanPage {
         TextInput({ text: this.planSearchText, placeholder: '搜索计划标题、内容、分类、目标或时间...' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.WHITE)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
@@ -400,6 +310,8 @@ export struct PlanPage {
       TextInput({ text: this.planTitle, placeholder: this.getTitlePlaceholder() })
         .width('100%')
         .height(44)
+        .fontColor(AppColors.INPUT_TEXT)
+        .placeholderColor(AppColors.INPUT_PLACEHOLDER)
         .backgroundColor(AppColors.GRAY_50)
         .borderRadius(12)
         .padding({ left: 12, right: 12 })
@@ -416,6 +328,8 @@ export struct PlanPage {
         TextInput({ text: this.noteContent, placeholder: '请输入便签内容' })
           .width('100%')
           .height(90)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.GRAY_50)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
@@ -427,6 +341,8 @@ export struct PlanPage {
         TextInput({ text: this.noteCategory, placeholder: '请输入分类，例如：学习 / 项目 / 生活' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.GRAY_50)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
@@ -440,6 +356,8 @@ export struct PlanPage {
         TextInput({ text: this.checkTarget, placeholder: '请输入打卡目标，例如：每天学习 30 分钟' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.GRAY_50)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
@@ -451,6 +369,8 @@ export struct PlanPage {
         TextInput({ text: this.checkTargetDaysText, placeholder: '请输入计划打卡天数，例如：30' })
           .width('100%')
           .height(44)
+          .fontColor(AppColors.INPUT_TEXT)
+          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
           .backgroundColor(AppColors.GRAY_50)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })

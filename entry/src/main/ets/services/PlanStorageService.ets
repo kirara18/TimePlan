@@ -33,12 +33,12 @@ export class PlanStorageService {
     let dataPreferences = await getTimePlanPreferences(context)
 
     let result: PlanStorageLoadResult = {
-      tasks: defaultTasks,
-      taskNextId: defaultTaskNextId,
-      notes: defaultNotes,
-      noteNextId: defaultNoteNextId,
-      checks: defaultChecks,
-      checkNextId: defaultCheckNextId
+      tasks: [],
+      taskNextId: 1,
+      notes: [],
+      noteNextId: 1,
+      checks: [],
+      checkNextId: 1
     }
 
     let tasksValue = await dataPreferences.get(TASKS_KEY, '')

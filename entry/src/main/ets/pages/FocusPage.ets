@@ -40,10 +40,12 @@ export struct FocusPage {
   @State durationTip: string = '当前时长：25 分钟'
 
   timerId: number = -1
+  dataSyncTimerId: number = -1
   focusStartTime: string = ''
 
   aboutToAppear(): void {
     this.initPreferencesAndLoad().then(() => {
+      this.startDataAutoRefresh()
       console.info('专注页数据加载完成')
     }).catch(() => {
       console.error('专注页数据加载失败')
@@ -52,6 +54,7 @@ export struct FocusPage {
 
   aboutToDisappear(): void {
     this.stopTimerOnly()
+    this.stopDataAutoRefresh()
   }
 
   onDataRefreshVersionChange(): void {
@@ -134,6 +137,8 @@ export struct FocusPage {
             TextInput({ text: this.customMinutesText, placeholder: '自定义分钟数' })
               .layoutWeight(1)
               .height(42)
+              .fontColor(AppColors.INPUT_TEXT)
+              .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .fontSize(14)
               .backgroundColor(AppColors.GRAY_50)
               .borderRadius(12)
@@ -390,6 +395,35 @@ export struct FocusPage {
     .margin({ bottom: 10 })
   }
 
+  startDataAutoRefresh(): void {
+    if (this.dataSyncTimerId !== -1) {
+      return
+    }
+
+    this.dataSyncTimerId = setInterval(() => {
+      if (!this.isRunning) {
+        this.loadTasks().then(() => {
+          // 计划页新增待办后，专注页绑定计划列表会自动刷新
+        }).catch(() => {
+          console.error('专注页自动同步待办失败')
+        })
+
+        this.loadFocusRecords().then(() => {
+          // 专注记录自动刷新
+        }).catch(() => {
+          console.error('专注页自动同步记录失败')
+        })
+      }
+    }, 800)
+  }
+
+  stopDataAutoRefresh(): void {
+    if (this.dataSyncTimerId !== -1) {
+      clearInterval(this.dataSyncTimerId)
+      this.dataSyncTimerId = -1
+    }
+  }
+
   async initPreferencesAndLoad(): Promise<void> {
     await this.initPreferences()
     await this.loadTasks()
@@ -416,7 +450,19 @@ export struct FocusPage {
     let tasksValue = await this.dataPreferences.get(this.TASKS_KEY, '')
     if (typeof tasksValue === 'string' && tasksValue.length > 0) {
       try {
-        loadedTasks = JSON.parse(tasksValue) as TodoTask[]
+        let parsedTasks = JSON.parse(tasksValue) as TodoTask[]
+        parsedTasks.forEach((item: TodoTask) => {
+          loadedTasks.push({
+            id: item.id,
+            title: safeText(item.title, '未命名待办'),
+            priority: safeText(item.priority, '中'),
+            date: safeText(item.date, getToday()),
+            startTime: safeText(item.startTime, '未设置'),
+            endTime: safeText(item.endTime, '未设置'),
+            done: item.done === true,
+            createDate: safeText(item.createDate, getToday())
+          })
+        })
       } catch (err) {
         console.error('专注页读取待办失败')
       }

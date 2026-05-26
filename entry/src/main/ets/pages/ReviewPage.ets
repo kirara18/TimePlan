@@ -100,7 +100,7 @@ export struct ReviewPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -126,7 +126,7 @@ export struct ReviewPage {
           }
           .width('100%')
           .height(8)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .borderRadius(4)
 
           Text('未完成待办：' + this.getUndoneTaskCount().toString() + ' 个')
@@ -137,7 +137,7 @@ export struct ReviewPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -158,7 +158,7 @@ export struct ReviewPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -183,7 +183,7 @@ export struct ReviewPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -202,7 +202,7 @@ export struct ReviewPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -211,7 +211,7 @@ export struct ReviewPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -248,7 +248,7 @@ export struct ReviewPage {
       }
       .width('100%')
       .height(6)
-      .backgroundColor(AppColors.GRAY_200)
+      .backgroundColor(AppColors.BORDER_BG)
       .borderRadius(3)
       .margin({ bottom: 6 })
 
@@ -258,7 +258,7 @@ export struct ReviewPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(AppColors.GRAY_50)
+    .backgroundColor(AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }

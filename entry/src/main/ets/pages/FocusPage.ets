@@ -103,7 +103,7 @@ export struct FocusPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -140,7 +140,7 @@ export struct FocusPage {
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
               .fontSize(14)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ right: 8 })
@@ -195,7 +195,7 @@ export struct FocusPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -223,7 +223,7 @@ export struct FocusPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -249,7 +249,7 @@ export struct FocusPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -258,7 +258,7 @@ export struct FocusPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -268,7 +268,7 @@ export struct FocusPage {
       .height(40)
       .fontSize(14)
       .fontColor(this.totalSeconds === minutes * 60 ? AppColors.WHITE : AppColors.GRAY_900)
-      .backgroundColor(this.totalSeconds === minutes * 60 ? this.themeColor : AppColors.GRAY_100)
+      .backgroundColor(this.totalSeconds === minutes * 60 ? this.themeColor : AppColors.SURFACE_ALT_BG)
       .borderRadius(12)
       .onClick(() => {
         if (!this.isRunning) {
@@ -311,7 +311,7 @@ export struct FocusPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(this.selectedTaskId === 0 ? AppColors.INDIGO_50 : AppColors.GRAY_50)
+    .backgroundColor(this.selectedTaskId === 0 ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
     .onClick(() => {
@@ -354,7 +354,7 @@ export struct FocusPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(this.selectedTaskId === task.id ? AppColors.INDIGO_50 : AppColors.GRAY_50)
+    .backgroundColor(this.selectedTaskId === task.id ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
     .onClick(() => {
@@ -390,7 +390,7 @@ export struct FocusPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(AppColors.GRAY_50)
+    .backgroundColor(AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }

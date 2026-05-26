@@ -3,6 +3,74 @@
     {
       "name": "start_window_background",
       "value": "#F6F7FB"
+    },
+    {
+      "name": "page_bg",
+      "value": "#F6F7FB"
+    },
+    {
+      "name": "card_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "surface_bg",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "surface_alt_bg",
+      "value": "#F3F4F6"
+    },
+    {
+      "name": "border_bg",
+      "value": "#E5E7EB"
+    },
+    {
+      "name": "text_heading",
+      "value": "#1F2937"
+    },
+    {
+      "name": "text_primary",
+      "value": "#111827"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#6B7280"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#9CA3AF"
+    },
+    {
+      "name": "blue_50",
+      "value": "#F3F6FF"
+    },
+    {
+      "name": "indigo_50",
+      "value": "#EEF2FF"
+    },
+    {
+      "name": "green_50",
+      "value": "#F0FDF4"
+    },
+    {
+      "name": "green_100",
+      "value": "#DCFCE7"
+    },
+    {
+      "name": "red_100",
+      "value": "#FEE2E2"
+    },
+    {
+      "name": "input_bg",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "input_text",
+      "value": "#111827"
+    },
+    {
+      "name": "input_placeholder",
+      "value": "#9CA3AF"
     }
   ]
 }

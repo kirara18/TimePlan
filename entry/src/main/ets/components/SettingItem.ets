@@ -23,7 +23,7 @@ export struct SettingItem {
     .width('100%')
     .height(54)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(14)
     .margin({ bottom: 10 })
   }

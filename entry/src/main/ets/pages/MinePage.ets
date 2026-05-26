@@ -113,7 +113,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(20)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 16 })
         .alignItems(HorizontalAlign.Start)
@@ -133,7 +133,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 16 })
 
@@ -150,7 +150,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 16 })
 
@@ -192,7 +192,7 @@ export struct MinePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -201,7 +201,7 @@ export struct MinePage {
     }
       .width('100%')
       .height('100%')
-      .backgroundColor(AppColors.GRAY_BLUE_50)
+      .backgroundColor(AppColors.PAGE_BG)
 
       if (this.showClearConfirm) {
         Column() {
@@ -266,7 +266,7 @@ export struct MinePage {
     }
     .width('100%')
     .padding(20)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(20)
     .shadow({ radius: 20, color: '#33000000', offsetX: 0, offsetY: 8 })
     .border({ width: 1, color: '#FCA5A5' })
@@ -293,7 +293,7 @@ export struct MinePage {
     .width('100%')
     .height(54)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(14)
     .margin({ bottom: 10 })
     .onClick(() => {

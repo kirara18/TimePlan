@@ -97,7 +97,7 @@ export struct PlanPage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.WHITE)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 16 })
@@ -133,7 +133,7 @@ export struct PlanPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -179,7 +179,7 @@ export struct PlanPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -188,7 +188,7 @@ export struct PlanPage {
     }
       .width('100%')
       .height('100%')
-      .backgroundColor(AppColors.GRAY_BLUE_50)
+      .backgroundColor(AppColors.PAGE_BG)
 
       if (this.showConflictConfirm) {
         Column() {
@@ -257,7 +257,7 @@ export struct PlanPage {
     }
     .width('100%')
     .padding(20)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(20)
     .shadow({ radius: 20, color: '#33000000', offsetX: 0, offsetY: 8 })
     .alignItems(HorizontalAlign.Start)
@@ -274,7 +274,7 @@ export struct PlanPage {
           .fontWeight(this.filterPlanType === item ? FontWeight.Bold : FontWeight.Normal)
           .fontColor(this.filterPlanType === item ? AppColors.WHITE : AppColors.GRAY_900)
           .textAlign(TextAlign.Center)
-          .backgroundColor(this.filterPlanType === item ? this.themeColor : AppColors.WHITE)
+          .backgroundColor(this.filterPlanType === item ? this.themeColor : AppColors.CARD_BG)
           .borderRadius(12)
           .onClick(() => {
             this.filterPlanType = item
@@ -312,7 +312,7 @@ export struct PlanPage {
         .height(44)
         .fontColor(AppColors.INPUT_TEXT)
         .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-        .backgroundColor(AppColors.GRAY_50)
+        .backgroundColor(AppColors.INPUT_BG)
         .borderRadius(12)
         .padding({ left: 12, right: 12 })
         .margin({ bottom: 10 })
@@ -330,7 +330,7 @@ export struct PlanPage {
           .height(90)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
           .margin({ bottom: 10 })
@@ -343,7 +343,7 @@ export struct PlanPage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
           .margin({ bottom: 10 })
@@ -358,7 +358,7 @@ export struct PlanPage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
           .margin({ bottom: 10 })
@@ -371,7 +371,7 @@ export struct PlanPage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(12)
           .padding({ left: 12, right: 12 })
           .margin({ bottom: 10 })
@@ -409,7 +409,7 @@ export struct PlanPage {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(18)
     .margin({ bottom: 18 })
   }
@@ -423,7 +423,7 @@ export struct PlanPage {
       .fontWeight(this.createPlanType === type ? FontWeight.Bold : FontWeight.Normal)
       .fontColor(this.createPlanType === type ? AppColors.WHITE : AppColors.GRAY_900)
       .textAlign(TextAlign.Center)
-      .backgroundColor(this.createPlanType === type ? this.themeColor : AppColors.GRAY_50)
+      .backgroundColor(this.createPlanType === type ? this.themeColor : AppColors.SURFACE_BG)
       .borderRadius(12)
       .margin({ right: type === 'Check' ? 0 : 8 })
       .onClick(() => {
@@ -459,7 +459,7 @@ export struct PlanPage {
       .fontWeight(this.taskPriority === priority ? FontWeight.Bold : FontWeight.Normal)
       .fontColor(this.taskPriority === priority ? AppColors.WHITE : this.getPriorityColor(priority))
       .textAlign(TextAlign.Center)
-      .backgroundColor(this.taskPriority === priority ? this.getPriorityColor(priority) : AppColors.GRAY_50)
+      .backgroundColor(this.taskPriority === priority ? this.getPriorityColor(priority) : AppColors.SURFACE_BG)
       .borderRadius(12)
       .margin({ right: priority === '低' ? 0 : 8 })
       .onClick(() => {
@@ -532,7 +532,7 @@ export struct PlanPage {
           }
           .width('100%')
           .height(6)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .borderRadius(3)
         }
         .width('100%')
@@ -584,7 +584,7 @@ export struct PlanPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
+    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
     .alignItems(HorizontalAlign.Start)
@@ -655,7 +655,7 @@ export struct PlanPage {
     return 'Plan'
   }
 
-  getPlanTypeColor(type: string): string {
+  getPlanTypeColor(type: string): ResourceColor {
     if (type === 'Task') {
       return this.themeColor
     }
@@ -668,7 +668,7 @@ export struct PlanPage {
     return AppColors.GRAY_900
   }
 
-  getPlanTypeBgColor(type: string): string {
+  getPlanTypeBgColor(type: string): ResourceColor {
     if (type === 'Task') {
       return AppColors.INDIGO_50
     }
@@ -691,7 +691,7 @@ export struct PlanPage {
     return '请输入打卡名称，例如：背单词'
   }
 
-  getPriorityColor(priority: string): string {
+  getPriorityColor(priority: string): ResourceColor {
     if (priority === '高') {
       return AppColors.RED
     }

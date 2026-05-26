@@ -22,7 +22,7 @@ export struct AboutAppPage {
             .fontColor(this.themeColor)
             .margin({ bottom: 12 })
 
-          Text('版本：V1.1.1')
+          Text('版本：V1.1.2')
             .fontSize(14)
             .fontColor(AppColors.GRAY_500)
 
@@ -33,7 +33,7 @@ export struct AboutAppPage {
         }
         .width('100%')
         .padding(22)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(20)
         .margin({ bottom: 16 })
         .alignItems(HorizontalAlign.Start)
@@ -68,7 +68,7 @@ export struct AboutAppPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -116,7 +116,7 @@ export struct AboutAppPage {
     }
     .width('100%')
     .padding(18)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(18)
     .margin({ bottom: 14 })
     .alignItems(HorizontalAlign.Start)

@@ -59,7 +59,7 @@ export struct CheckPage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.WHITE)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 20 })
@@ -84,7 +84,7 @@ export struct CheckPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -116,7 +116,7 @@ export struct CheckPage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -129,7 +129,7 @@ export struct CheckPage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -142,7 +142,7 @@ export struct CheckPage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -155,7 +155,7 @@ export struct CheckPage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -169,7 +169,7 @@ export struct CheckPage {
                 .height(44)
                 .fontColor(AppColors.INPUT_TEXT)
                 .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-                .backgroundColor(AppColors.GRAY_50)
+                .backgroundColor(AppColors.INPUT_BG)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ right: 6 })
@@ -182,7 +182,7 @@ export struct CheckPage {
                 .height(44)
                 .fontColor(AppColors.INPUT_TEXT)
                 .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-                .backgroundColor(AppColors.GRAY_50)
+                .backgroundColor(AppColors.INPUT_BG)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ left: 6 })
@@ -206,7 +206,7 @@ export struct CheckPage {
           }
           .width('100%')
           .padding(18)
-          .backgroundColor(AppColors.WHITE)
+          .backgroundColor(AppColors.CARD_BG)
           .borderRadius(18)
           .margin({ bottom: 18 })
         }
@@ -235,7 +235,7 @@ export struct CheckPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -244,7 +244,7 @@ export struct CheckPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -286,7 +286,7 @@ export struct CheckPage {
           }
           .width('100%')
           .height(8)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .borderRadius(4)
           .margin({ top: 8 })
 
@@ -328,7 +328,7 @@ export struct CheckPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(this.isCheckedToday(habit) ? AppColors.GREEN_50 : AppColors.GRAY_50)
+    .backgroundColor(this.isCheckedToday(habit) ? AppColors.GREEN_50 : AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }

@@ -68,7 +68,7 @@ export struct PlanDateTimeSelector {
       .width('100%')
       .height(56)
       .padding({ left: 12, right: 12 })
-      .backgroundColor(AppColors.GRAY_50)
+      .backgroundColor(AppColors.SURFACE_BG)
       .borderRadius(12)
       .onClick(() => {
         let baseDate = this.planDate.length > 0 ? this.planDate : getToday()
@@ -102,7 +102,7 @@ export struct PlanDateTimeSelector {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
@@ -122,7 +122,7 @@ export struct PlanDateTimeSelector {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
@@ -155,7 +155,7 @@ export struct PlanDateTimeSelector {
               .fontWeight(day.date === this.planDate ? FontWeight.Bold : FontWeight.Normal)
               .fontColor(this.getPickerDayTextColor(day))
               .textAlign(TextAlign.Center)
-              .backgroundColor(day.date === this.planDate ? this.themeColor : AppColors.WHITE)
+              .backgroundColor(day.date === this.planDate ? this.themeColor : AppColors.CARD_BG)
               .borderRadius(10)
               .border({
                 width: day.date === getToday() && day.date !== this.planDate ? 1 : 0,
@@ -175,7 +175,7 @@ export struct PlanDateTimeSelector {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(14)
     .margin({ top: 10 })
     .transition({
@@ -205,7 +205,7 @@ export struct PlanDateTimeSelector {
         .padding({ left: 12, right: 12 })
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Start)
-        .backgroundColor(this.timePickerTarget === 'Start' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.GRAY_50)
+        .backgroundColor(this.timePickerTarget === 'Start' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
         .borderRadius(12)
         .margin({ right: 6 })
         .onClick(() => {
@@ -228,7 +228,7 @@ export struct PlanDateTimeSelector {
         .padding({ left: 12, right: 12 })
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Start)
-        .backgroundColor(this.timePickerTarget === 'End' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.GRAY_50)
+        .backgroundColor(this.timePickerTarget === 'End' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
         .borderRadius(12)
         .margin({ left: 6 })
         .onClick(() => {
@@ -290,7 +290,7 @@ export struct PlanDateTimeSelector {
           }
           .width('100%')
           .height(180)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.SURFACE_BG)
           .borderRadius(12)
         }
         .layoutWeight(1)
@@ -314,7 +314,7 @@ export struct PlanDateTimeSelector {
           }
           .width('100%')
           .height(180)
-          .backgroundColor(AppColors.GRAY_50)
+          .backgroundColor(AppColors.SURFACE_BG)
           .borderRadius(12)
         }
         .layoutWeight(1)
@@ -324,7 +324,7 @@ export struct PlanDateTimeSelector {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(AppColors.WHITE)
+    .backgroundColor(AppColors.CARD_BG)
     .borderRadius(14)
     .margin({ top: 10 })
     .transition({
@@ -343,7 +343,7 @@ export struct PlanDateTimeSelector {
       .fontWeight(this.getCurrentTargetHour() === hour ? FontWeight.Bold : FontWeight.Normal)
       .fontColor(this.getCurrentTargetHour() === hour ? AppColors.WHITE : AppColors.GRAY_900)
       .textAlign(TextAlign.Center)
-      .backgroundColor(this.getCurrentTargetHour() === hour ? this.themeColor : AppColors.WHITE)
+      .backgroundColor(this.getCurrentTargetHour() === hour ? this.themeColor : AppColors.CARD_BG)
       .borderRadius(10)
       .margin({ bottom: 6 })
       .onClick(() => {
@@ -360,7 +360,7 @@ export struct PlanDateTimeSelector {
       .fontWeight(this.getCurrentTargetMinute() === minute ? FontWeight.Bold : FontWeight.Normal)
       .fontColor(this.getCurrentTargetMinute() === minute ? AppColors.WHITE : AppColors.GRAY_900)
       .textAlign(TextAlign.Center)
-      .backgroundColor(this.getCurrentTargetMinute() === minute ? this.themeColor : AppColors.WHITE)
+      .backgroundColor(this.getCurrentTargetMinute() === minute ? this.themeColor : AppColors.CARD_BG)
       .borderRadius(10)
       .margin({ bottom: 6 })
       .onClick(() => {
@@ -403,7 +403,7 @@ export struct PlanDateTimeSelector {
     }
   }
 
-  getPickerDayTextColor(day: SimpleCalendarDay): string {
+  getPickerDayTextColor(day: SimpleCalendarDay): ResourceColor {
     if (day.date === this.planDate) {
       return AppColors.WHITE
     }

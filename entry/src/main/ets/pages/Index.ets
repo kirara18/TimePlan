@@ -71,7 +71,7 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
       .onChange((index: number) => {
         this.currentIndex = index
       })
@@ -131,7 +131,7 @@ struct SplashScreen {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
     .alignItems(HorizontalAlign.Center)
   }
 }

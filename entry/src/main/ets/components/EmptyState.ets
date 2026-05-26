@@ -29,7 +29,7 @@ export struct EmptyState {
     }
     .width('100%')
     .padding({ top: 22, bottom: 22, left: 18, right: 18 })
-    .backgroundColor(AppColors.GRAY_50)
+    .backgroundColor(AppColors.SURFACE_BG)
     .borderRadius(16)
     .alignItems(HorizontalAlign.Center)
   }

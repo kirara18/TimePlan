@@ -2,7 +2,75 @@
   "color": [
     {
       "name": "start_window_background",
-      "value": "#F6F7FB"
+      "value": "#111827"
+    },
+    {
+      "name": "page_bg",
+      "value": "#111827"
+    },
+    {
+      "name": "card_bg",
+      "value": "#1F2937"
+    },
+    {
+      "name": "surface_bg",
+      "value": "#273244"
+    },
+    {
+      "name": "surface_alt_bg",
+      "value": "#374151"
+    },
+    {
+      "name": "border_bg",
+      "value": "#4B5563"
+    },
+    {
+      "name": "text_heading",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "text_primary",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#D1D5DB"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#9CA3AF"
+    },
+    {
+      "name": "blue_50",
+      "value": "#1E3A8A"
+    },
+    {
+      "name": "indigo_50",
+      "value": "#312E81"
+    },
+    {
+      "name": "green_50",
+      "value": "#064E3B"
+    },
+    {
+      "name": "green_100",
+      "value": "#14532D"
+    },
+    {
+      "name": "red_100",
+      "value": "#7F1D1D"
+    },
+    {
+      "name": "input_bg",
+      "value": "#273244"
+    },
+    {
+      "name": "input_text",
+      "value": "#F9FAFB"
+    },
+    {
+      "name": "input_placeholder",
+      "value": "#9CA3AF"
     }
   ]
 }

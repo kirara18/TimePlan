@@ -108,7 +108,7 @@ export struct CalendarPage {
               .fontColor(AppColors.GRAY_900)
               .padding({ left: 12, right: 12, top: 6, bottom: 6 })
               .borderRadius(10)
-              .backgroundColor(AppColors.GRAY_100)
+              .backgroundColor(AppColors.SURFACE_ALT_BG)
               .onClick(() => {
                 this.pickerYear = this.currentYear
 
@@ -168,7 +168,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -189,7 +189,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -199,7 +199,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -246,7 +246,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(20)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 16 })
         .alignItems(HorizontalAlign.Start)
@@ -268,7 +268,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 16 })
 
@@ -294,7 +294,7 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -303,7 +303,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -314,7 +314,7 @@ export struct CalendarPage {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
@@ -334,7 +334,7 @@ export struct CalendarPage {
           .width(42)
           .height(34)
           .fontSize(16)
-          .backgroundColor(AppColors.GRAY_200)
+          .backgroundColor(AppColors.BORDER_BG)
           .fontColor(AppColors.GRAY_900)
           .borderRadius(10)
           .onClick(() => {
@@ -354,7 +354,7 @@ export struct CalendarPage {
               .fontWeight(this.pickerYear === this.currentYear && month === this.currentMonth ? FontWeight.Bold : FontWeight.Normal)
               .fontColor(this.pickerYear === this.currentYear && month === this.currentMonth ? AppColors.WHITE : AppColors.GRAY_900)
               .textAlign(TextAlign.Center)
-              .backgroundColor(this.pickerYear === this.currentYear && month === this.currentMonth ? this.themeColor : AppColors.GRAY_50)
+              .backgroundColor(this.pickerYear === this.currentYear && month === this.currentMonth ? this.themeColor : AppColors.SURFACE_BG)
               .borderRadius(12)
               .onClick(() => {
                 this.selectMonth(this.pickerYear, month)
@@ -369,7 +369,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(AppColors.GRAY_50)
+    .backgroundColor(AppColors.SURFACE_BG)
     .borderRadius(14)
     .margin({ bottom: 16 })
     .transition({
@@ -484,7 +484,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.GRAY_50)
+    .backgroundColor(item.done ? AppColors.GREEN_50 : AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
   }
@@ -698,7 +698,7 @@ export struct CalendarPage {
     }).length
   }
 
-  getDayTextColor(day: CalendarDay): string {
+  getDayTextColor(day: CalendarDay): ResourceColor {
     if (!day.isCurrentMonth) {
       return AppColors.GRAY_400
     }
@@ -714,7 +714,7 @@ export struct CalendarPage {
     return AppColors.GRAY_900
   }
 
-  getDayBackgroundColor(day: CalendarDay): string {
+  getDayBackgroundColor(day: CalendarDay): ResourceColor {
     if (!day.isCurrentMonth) {
       return AppColors.GRAY_100
     }

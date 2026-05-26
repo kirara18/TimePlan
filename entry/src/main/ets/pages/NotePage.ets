@@ -64,7 +64,7 @@ export struct NotePage {
           .height(44)
           .fontColor(AppColors.INPUT_TEXT)
           .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.WHITE)
+          .backgroundColor(AppColors.INPUT_BG)
           .borderRadius(14)
           .padding({ left: 14, right: 14 })
           .margin({ bottom: 20 })
@@ -89,7 +89,7 @@ export struct NotePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 18 })
 
@@ -121,7 +121,7 @@ export struct NotePage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -134,7 +134,7 @@ export struct NotePage {
               .height(90)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -147,7 +147,7 @@ export struct NotePage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -160,7 +160,7 @@ export struct NotePage {
               .height(44)
               .fontColor(AppColors.INPUT_TEXT)
               .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-              .backgroundColor(AppColors.GRAY_50)
+              .backgroundColor(AppColors.INPUT_BG)
               .borderRadius(12)
               .padding({ left: 12, right: 12 })
               .margin({ bottom: 10 })
@@ -174,7 +174,7 @@ export struct NotePage {
                 .height(44)
                 .fontColor(AppColors.INPUT_TEXT)
                 .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-                .backgroundColor(AppColors.GRAY_50)
+                .backgroundColor(AppColors.INPUT_BG)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ right: 6 })
@@ -187,7 +187,7 @@ export struct NotePage {
                 .height(44)
                 .fontColor(AppColors.INPUT_TEXT)
                 .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-                .backgroundColor(AppColors.GRAY_50)
+                .backgroundColor(AppColors.INPUT_BG)
                 .borderRadius(12)
                 .padding({ left: 12, right: 12 })
                 .margin({ left: 6 })
@@ -211,7 +211,7 @@ export struct NotePage {
           }
           .width('100%')
           .padding(18)
-          .backgroundColor(AppColors.WHITE)
+          .backgroundColor(AppColors.CARD_BG)
           .borderRadius(18)
           .margin({ bottom: 18 })
         }
@@ -240,7 +240,7 @@ export struct NotePage {
         }
         .width('100%')
         .padding(18)
-        .backgroundColor(AppColors.WHITE)
+        .backgroundColor(AppColors.CARD_BG)
         .borderRadius(18)
         .margin({ bottom: 30 })
       }
@@ -249,7 +249,7 @@ export struct NotePage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppColors.GRAY_BLUE_50)
+    .backgroundColor(AppColors.PAGE_BG)
   }
 
   @Builder
@@ -294,7 +294,7 @@ export struct NotePage {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor(AppColors.GRAY_50)
+    .backgroundColor(AppColors.SURFACE_BG)
     .borderRadius(12)
     .margin({ bottom: 10 })
     .alignItems(HorizontalAlign.Start)

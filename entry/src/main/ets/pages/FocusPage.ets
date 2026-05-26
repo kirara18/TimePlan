@@ -237,7 +237,7 @@ export struct FocusPage {
           if (this.getTodayRecords().length === 0) {
             EmptyState({
               themeColor: this.themeColor,
-              iconText: '钟',
+              iconText: '专注',
               title: '今天还没有专注记录',
               description: '完成一次专注后，记录会自动显示在这里。'
             })

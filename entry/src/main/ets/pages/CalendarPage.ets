@@ -282,8 +282,8 @@ export struct CalendarPage {
           if (this.getSelectedDayItems().length === 0) {
             EmptyState({
               themeColor: this.themeColor,
-              iconText: '日',
-              title: '这一天暂无安排',
+              iconText: '计划',
+              title: '这一天暂无计划',
               description: '可以到计划页新增待办、便签或打卡，填写日期和时间后会自动显示在这里。'
             })
           } else {

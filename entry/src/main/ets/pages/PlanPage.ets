@@ -167,7 +167,7 @@ export struct PlanPage {
           if (this.getFilteredPlanItems().length === 0) {
             EmptyState({
               themeColor: this.themeColor,
-              iconText: '计',
+              iconText: '计划',
               title: '暂无匹配计划',
               description: '可以点击“新增计划”创建待办、便签或打卡安排。'
             })

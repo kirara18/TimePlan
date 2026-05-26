@@ -181,7 +181,7 @@ export struct CalendarPage {
 
           Row() {
             StatBox({ themeColor: this.themeColor, title: '全部', value: this.getMonthItemCount().toString() })
-            StatBox({ themeColor: this.themeColor, title: '计划', value: this.getMonthTypeCount('计划').toString() })
+            StatBox({ themeColor: this.themeColor, title: '待办', value: this.getMonthTypeCount('待办').toString() })
             StatBox({ themeColor: this.themeColor, title: '打卡', value: this.getMonthTypeCount('打卡').toString() })
           }
           .width('100%')
@@ -259,7 +259,7 @@ export struct CalendarPage {
             .margin({ bottom: 14 })
 
           Row() {
-            StatBox({ themeColor: this.themeColor, title: '计划', value: this.getSelectedDayTypeCount('计划').toString() })
+            StatBox({ themeColor: this.themeColor, title: '待办', value: this.getSelectedDayTypeCount('待办').toString() })
             StatBox({ themeColor: this.themeColor, title: '便签', value: this.getSelectedDayTypeCount('便签').toString() })
             StatBox({ themeColor: this.themeColor, title: '打卡', value: this.getSelectedDayTypeCount('打卡').toString() })
           }
@@ -540,7 +540,7 @@ export struct CalendarPage {
         tasks.forEach((task: TodoTask) => {
           result.push({
             id: task.id,
-            type: '计划',
+            type: '待办',
             title: task.title,
             date: normalizeDateInput(safeText(task.date, getToday()), this.currentYear, this.currentMonth),
             startTime: safeText(task.startTime, '未设置'),
@@ -550,7 +550,7 @@ export struct CalendarPage {
           })
         })
       } catch (err) {
-        console.error('读取计划日历失败')
+        console.error('读取待办日历失败')
       }
     }
 

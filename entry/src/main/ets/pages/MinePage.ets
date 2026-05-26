@@ -1,10 +1,10 @@
 import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
-import { SettingItem } from '../components/SettingItem'
 import { PrivacyPolicyPage } from './PrivacyPolicyPage'
 import { UserAgreementPage } from './UserAgreementPage'
 import { AboutAppPage } from './AboutAppPage'
 import { FeatureIntroPage } from './FeatureIntroPage'
+import { DataBackupPage } from './DataBackupPage'
 import {
   STORE_NAME as TIME_PLAN_STORE_NAME,
   TASKS_KEY as PLAN_TASKS_KEY,
@@ -46,7 +46,7 @@ export struct MinePage {
   readonly THEME_KEY: string = PLAN_THEME_KEY
 
   @State themeMode: string = '默认蓝色'
-  @State operationTip: string = '已新增隐私政策、用户协议和关于应用页面'
+  @State operationTip: string = '支持本地数据导出与恢复，备份文件由你自行保存'
   @State currentInfoPage: string = 'main'
   @State currentFeatureTitle: string = ''
   @State currentFeatureContent: string = ''
@@ -83,6 +83,17 @@ export struct MinePage {
           themeColor: this.themeColor,
           onBack: () => {
             this.currentInfoPage = 'main'
+          }
+        })
+      } else if (this.currentInfoPage === 'backup') {
+        DataBackupPage({
+          themeColor: this.themeColor,
+          onBack: () => {
+            this.currentInfoPage = 'main'
+          },
+          onDataRestored: () => {
+            this.onDataCleared()
+            this.operationTip = '已从备份文件恢复数据，其他页面已刷新'
           }
         })
       } else if (this.currentInfoPage === 'feature') {
@@ -197,7 +208,7 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
-          SettingItem({ title: '数据备份', value: 'Preferences 本地存储' })
+          this.ActionItem('数据备份', '导出 / 恢复本地数据', 'backup')
 
           Button('切换主题偏好')
             .width('100%')

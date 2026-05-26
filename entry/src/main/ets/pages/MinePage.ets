@@ -4,6 +4,7 @@ import { SettingItem } from '../components/SettingItem'
 import { PrivacyPolicyPage } from './PrivacyPolicyPage'
 import { UserAgreementPage } from './UserAgreementPage'
 import { AboutAppPage } from './AboutAppPage'
+import { FeatureIntroPage } from './FeatureIntroPage'
 import {
   STORE_NAME as TIME_PLAN_STORE_NAME,
   TASKS_KEY as PLAN_TASKS_KEY,
@@ -47,6 +48,8 @@ export struct MinePage {
   @State themeMode: string = '默认蓝色'
   @State operationTip: string = '已新增隐私政策、用户协议和关于应用页面'
   @State currentInfoPage: string = 'main'
+  @State currentFeatureTitle: string = ''
+  @State currentFeatureContent: string = ''
   @State showClearConfirm: boolean = false
 
   aboutToAppear(): void {
@@ -58,30 +61,43 @@ export struct MinePage {
   }
 
   build() {
-    if (this.currentInfoPage === 'privacy') {
-      PrivacyPolicyPage({
-        themeColor: this.themeColor,
-        onBack: () => {
-          this.currentInfoPage = 'main'
-        }
-      })
-    } else if (this.currentInfoPage === 'agreement') {
-      UserAgreementPage({
-        themeColor: this.themeColor,
-        onBack: () => {
-          this.currentInfoPage = 'main'
-        }
-      })
-    } else if (this.currentInfoPage === 'about') {
-      AboutAppPage({
-        themeColor: this.themeColor,
-        onBack: () => {
-          this.currentInfoPage = 'main'
-        }
-      })
-    } else {
+    Stack() {
       this.MainContent()
+
+      if (this.currentInfoPage === 'privacy') {
+        PrivacyPolicyPage({
+          themeColor: this.themeColor,
+          onBack: () => {
+            this.currentInfoPage = 'main'
+          }
+        })
+      } else if (this.currentInfoPage === 'agreement') {
+        UserAgreementPage({
+          themeColor: this.themeColor,
+          onBack: () => {
+            this.currentInfoPage = 'main'
+          }
+        })
+      } else if (this.currentInfoPage === 'about') {
+        AboutAppPage({
+          themeColor: this.themeColor,
+          onBack: () => {
+            this.currentInfoPage = 'main'
+          }
+        })
+      } else if (this.currentInfoPage === 'feature') {
+        FeatureIntroPage({
+          themeColor: this.themeColor,
+          title: this.currentFeatureTitle,
+          description: this.currentFeatureContent,
+          onBack: () => {
+            this.currentInfoPage = 'main'
+          }
+        })
+      }
     }
+    .width('100%')
+    .height('100%')
   }
 
   @Builder
@@ -125,11 +141,31 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
-          SettingItem({ title: '日历安排', value: '按月查看全部安排' })
-          SettingItem({ title: '计划管理', value: '待办、时间、完成状态' })
-          SettingItem({ title: '专注模式', value: '番茄钟与专注记录' })
-          SettingItem({ title: '统计分析', value: '已独立到统计页' })
-          SettingItem({ title: '本地存储', value: '数据保存在本机' })
+          this.FeatureActionItem(
+            '日历安排',
+            '查看按月安排说明',
+            '在日历中按月查看计划、便签、打卡和专注记录，快速掌握每日安排。'
+          )
+          this.FeatureActionItem(
+            '计划管理',
+            '查看待办管理说明',
+            '支持新增待办事项，设置日期时间并标记完成，帮助整理学习和生活任务。'
+          )
+          this.FeatureActionItem(
+            '专注模式',
+            '查看专注计时说明',
+            '提供专注计时和历史记录，便于统计学习时长，培养稳定的专注习惯。'
+          )
+          this.FeatureActionItem(
+            '统计分析',
+            '查看统计汇总说明',
+            '汇总计划完成、打卡和专注数据，以图文方式展示近期执行情况与变化趋势。'
+          )
+          this.FeatureActionItem(
+            '本地存储',
+            '查看数据保存说明',
+            '所有计划、便签、习惯和专注记录优先保存在本机，便于离线使用。'
+          )
         }
         .width('100%')
         .padding(18)
@@ -161,7 +197,6 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 12 })
 
-          SettingItem({ title: '主题设置', value: this.themeMode })
           SettingItem({ title: '数据备份', value: 'Preferences 本地存储' })
 
           Button('切换主题偏好')
@@ -298,6 +333,36 @@ export struct MinePage {
     .margin({ bottom: 10 })
     .onClick(() => {
       this.currentInfoPage = page
+    })
+  }
+
+  @Builder
+  FeatureActionItem(title: string, value: string, content: string) {
+    Row() {
+      Text(title)
+        .fontSize(16)
+        .fontColor(AppColors.GRAY_900)
+
+      Blank()
+
+      Text(value)
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_500)
+
+      Text(' >')
+        .fontSize(14)
+        .fontColor(AppColors.GRAY_400)
+    }
+    .width('100%')
+    .height(54)
+    .padding({ left: 16, right: 16 })
+    .backgroundColor(AppColors.CARD_BG)
+    .borderRadius(14)
+    .margin({ bottom: 10 })
+    .onClick(() => {
+      this.currentFeatureTitle = title
+      this.currentFeatureContent = content
+      this.currentInfoPage = 'feature'
     })
   }
 

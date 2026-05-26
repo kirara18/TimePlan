@@ -22,7 +22,7 @@ export struct AboutAppPage {
             .fontColor(this.themeColor)
             .margin({ bottom: 12 })
 
-          Text('版本：V1.1.2')
+          Text('版本：V1.1.3')
             .fontSize(14)
             .fontColor(AppColors.GRAY_500)
 

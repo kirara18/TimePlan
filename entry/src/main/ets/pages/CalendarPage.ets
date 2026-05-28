@@ -1,9 +1,9 @@
 import { preferences } from '@kit.ArkData'
 import { common } from '@kit.AbilityKit'
-import { TodoTask, NoteItem, HabitData, RecordItem, CalendarItem, CalendarDay } from '../model/AppModels'
+import { TodoTask, NoteItem, HabitData, CalendarItem, CalendarDay } from '../model/AppModels'
 import { StatBox } from '../components/StatBox'
 import { EmptyState } from '../components/EmptyState'
-import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, NOTES_KEY as PLAN_NOTES_KEY, HABITS_KEY as PLAN_HABITS_KEY, RECORDS_KEY as PLAN_RECORDS_KEY } from '../utils/StoreConstants'
+import { STORE_NAME as TIME_PLAN_STORE_NAME, TASKS_KEY as PLAN_TASKS_KEY, NOTES_KEY as PLAN_NOTES_KEY, HABITS_KEY as PLAN_HABITS_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 import { safeText, getToday, formatDate, formatMonth, normalizeDateInput, getWeekTitles, getYearFromDate, getMonthFromDate, dateInList, dateToDayNumber, dayNumberToDate, buildMonthDays, SimpleCalendarDay } from '../utils/DateUtil'
 import { AppColors } from '../utils/AppColors'
@@ -20,7 +20,6 @@ export struct CalendarPage {
   readonly TASKS_KEY: string = PLAN_TASKS_KEY
   readonly NOTES_KEY: string = PLAN_NOTES_KEY
   readonly HABITS_KEY: string = PLAN_HABITS_KEY
-  readonly RECORDS_KEY: string = PLAN_RECORDS_KEY
 
   @State currentYear: number = 2026
   @State currentMonth: number = 5
@@ -79,7 +78,7 @@ export struct CalendarPage {
           .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
-        Text('按月查看计划、便签、打卡和时光记录中的全部安排')
+        Text('按月查看待办、便签和打卡中的全部安排')
           .fontSize(15)
           .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
@@ -266,12 +265,7 @@ export struct CalendarPage {
           }
           .width('100%')
           .justifyContent(FlexAlign.SpaceBetween)
-          .margin({ bottom: 10 })
 
-          Row() {
-            StatBox({ themeColor: this.themeColor, title: '时光记', value: this.getSelectedDayTypeCount('时光记').toString() })
-          }
-          .width('100%')
         }
         .width('100%')
         .padding(18)
@@ -291,7 +285,7 @@ export struct CalendarPage {
               themeColor: this.themeColor,
               iconText: '计划',
               title: '这一天暂无计划',
-              description: '可以到计划页新增待办、便签或打卡，也可以到时光记页新增记录。'
+              description: '可以到计划页新增待办、便签或打卡。'
             })
           } else {
             ForEach(this.getSelectedDayItems(), (item: CalendarItem) => {
@@ -609,46 +603,7 @@ export struct CalendarPage {
       }
     }
 
-    let recordsValue = await this.dataPreferences.get(this.RECORDS_KEY, '')
-    if (typeof recordsValue === 'string' && recordsValue.length > 0) {
-      try {
-        let records = JSON.parse(recordsValue) as RecordItem[]
-        records.forEach((record: RecordItem) => {
-          result.push({
-            id: record.id,
-            type: '时光记',
-            title: record.title,
-            date: normalizeDateInput(safeText(record.date, getToday()), this.currentYear, this.currentMonth),
-            startTime: safeText(record.time, '未设置'),
-            endTime: '记录',
-            description: this.getRecordCalendarDescription(record),
-            done: false
-          })
-        })
-      } catch (err) {
-        console.error('读取时光记日历失败')
-      }
-    }
-
     this.allItems = result
-  }
-
-  getRecordCalendarDescription(record: RecordItem): string {
-    let content = safeText(record.content, '')
-    let imageCount = 0
-    if (Array.isArray(record.imageUris)) {
-      imageCount = record.imageUris.length
-    }
-    if (content.length > 0 && imageCount > 0) {
-      return content + '（含 ' + imageCount.toString() + ' 张图片）'
-    }
-    if (content.length > 0) {
-      return content
-    }
-    if (imageCount > 0) {
-      return '包含 ' + imageCount.toString() + ' 张图片'
-    }
-    return '暂无文字内容'
   }
 
   updateCalendarDays(): void {

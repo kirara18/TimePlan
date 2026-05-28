@@ -16,6 +16,11 @@ export struct PlanDateTimeSelector {
   @Prop planStartTime: string = ''
   @Prop planEndTime: string = ''
 
+  @Prop dateLabel: string = '计划日期'
+  @Prop startTimeLabel: string = '开始时间'
+  @Prop endTimeLabel: string = '结束时间'
+  @Prop showEndTime: boolean = true
+
   onDateChange: (dateText: string) => void = (dateText: string) => {}
   onStartTimeChange: (timeText: string) => void = (timeText: string) => {}
   onEndTimeChange: (timeText: string) => void = (timeText: string) => {}
@@ -47,7 +52,7 @@ export struct PlanDateTimeSelector {
     Column() {
       Row() {
         Column() {
-          Text('计划日期')
+          Text(this.dateLabel)
             .fontSize(13)
             .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 4 })
@@ -190,7 +195,7 @@ export struct PlanDateTimeSelector {
     Column() {
       Row() {
         Column() {
-          Text('开始时间')
+          Text(this.startTimeLabel)
             .fontSize(13)
             .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 4 })
@@ -207,33 +212,35 @@ export struct PlanDateTimeSelector {
         .alignItems(HorizontalAlign.Start)
         .backgroundColor(this.timePickerTarget === 'Start' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
         .borderRadius(12)
-        .margin({ right: 6 })
+        .margin({ right: this.showEndTime ? 6 : 0 })
         .onClick(() => {
           this.openPlanTimePicker('Start')
         })
 
-        Column() {
-          Text('结束时间')
-            .fontSize(13)
-            .fontColor(AppColors.GRAY_500)
-            .margin({ bottom: 4 })
+        if (this.showEndTime) {
+          Column() {
+            Text(this.endTimeLabel)
+              .fontSize(13)
+              .fontColor(AppColors.GRAY_500)
+              .margin({ bottom: 4 })
 
-          Text(this.planEndTime.length > 0 ? this.planEndTime : '请选择')
-            .fontSize(16)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(this.planEndTime.length > 0 ? AppColors.GRAY_900 : AppColors.GRAY_400)
+            Text(this.planEndTime.length > 0 ? this.planEndTime : '请选择')
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(this.planEndTime.length > 0 ? AppColors.GRAY_900 : AppColors.GRAY_400)
+          }
+          .layoutWeight(1)
+          .height(56)
+          .padding({ left: 12, right: 12 })
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Start)
+          .backgroundColor(this.timePickerTarget === 'End' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
+          .borderRadius(12)
+          .margin({ left: 6 })
+          .onClick(() => {
+            this.openPlanTimePicker('End')
+          })
         }
-        .layoutWeight(1)
-        .height(56)
-        .padding({ left: 12, right: 12 })
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Start)
-        .backgroundColor(this.timePickerTarget === 'End' && this.showTimePicker ? AppColors.INDIGO_50 : AppColors.SURFACE_BG)
-        .borderRadius(12)
-        .margin({ left: 6 })
-        .onClick(() => {
-          this.openPlanTimePicker('End')
-        })
       }
       .width('100%')
 
@@ -249,7 +256,7 @@ export struct PlanDateTimeSelector {
   TimePickerPanel() {
     Column() {
       Row() {
-        Text(this.timePickerTarget === 'Start' ? '选择开始时间' : '选择结束时间')
+        Text(this.getTimePickerTitle())
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor(AppColors.GRAY_900)
@@ -368,6 +375,14 @@ export struct PlanDateTimeSelector {
       })
   }
 
+  getTimePickerTitle(): string {
+    if (!this.showEndTime) {
+      return '选择' + this.startTimeLabel
+    }
+
+    return this.timePickerTarget === 'Start' ? '选择' + this.startTimeLabel : '选择' + this.endTimeLabel
+  }
+
   getPickerDays(): SimpleCalendarDay[] {
     return buildMonthDays(this.pickerYear, this.pickerMonth, 5)
   }
@@ -420,6 +435,10 @@ export struct PlanDateTimeSelector {
   }
 
   openPlanTimePicker(target: string): void {
+    if (!this.showEndTime) {
+      target = 'Start'
+    }
+
     if (this.timePickerTarget === target) {
       this.showTimePicker = !this.showTimePicker
     } else {
@@ -441,7 +460,7 @@ export struct PlanDateTimeSelector {
       this.onStartTimeChange(startTime)
     }
 
-    if (this.planEndTime.length === 0) {
+    if (this.showEndTime && this.planEndTime.length === 0) {
       this.onEndTimeChange(endTime)
     }
   }

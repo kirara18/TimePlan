@@ -3,6 +3,7 @@ import { common } from '@kit.AbilityKit'
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { RecordItem } from '../model/AppModels'
+import { PlanDateTimeSelector } from '../components/plan/PlanDateTimeSelector'
 import { RECORDS_KEY, RECORD_NEXT_ID_KEY } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
 import { getToday, normalizeDateInput } from '../utils/DateUtil'
@@ -21,6 +22,7 @@ export struct RecordPage {
   @State showAddPanel: boolean = false
   @State operationTip: string = '记录生活中的重要瞬间，可添加文字和相册图片。'
 
+  @State editingRecordId: number = -1
   @State recordTitle: string = ''
   @State recordContent: string = ''
   @State recordDate: string = ''
@@ -40,6 +42,7 @@ export struct RecordPage {
   onDataRefreshVersionChange(): void {
     this.loadRecords().then(() => {
       this.showAddPanel = false
+      this.editingRecordId = -1
       this.resetForm()
       this.operationTip = '时光记已同步最新本地数据'
     }).catch(() => {
@@ -87,7 +90,7 @@ export struct RecordPage {
         .borderRadius(18)
         .margin({ bottom: 18 })
 
-        Button(this.showAddPanel ? '收起记录表单' : '+ 新增时光记录')
+        Button(this.getPanelToggleText())
           .width('100%')
           .height(48)
           .fontSize(17)
@@ -96,12 +99,15 @@ export struct RecordPage {
           .borderRadius(16)
           .margin({ bottom: 14 })
           .onClick(() => {
-            this.showAddPanel = !this.showAddPanel
-            this.resetFormTimeIfEmpty()
+            if (this.showAddPanel) {
+              this.closeRecordPanel()
+            } else {
+              this.startNewRecord()
+            }
           })
 
         if (this.showAddPanel) {
-          this.AddRecordPanel()
+          this.RecordEditPanel()
         }
 
         Column() {
@@ -128,7 +134,7 @@ export struct RecordPage {
           } else {
             ForEach(this.getSortedRecords(), (item: RecordItem) => {
               this.RecordTimelineItem(item)
-            }, (item: RecordItem) => item.id.toString() + '_' + item.title + '_' + item.date + '_' + item.time + '_' + item.imageUris.length.toString())
+            }, (item: RecordItem) => item.id.toString() + '_' + item.title + '_' + item.date + '_' + item.time + '_' + item.imageUris.length.toString() + '_' + item.createTime.toString())
           }
         }
         .width('100%')
@@ -166,9 +172,9 @@ export struct RecordPage {
   }
 
   @Builder
-  AddRecordPanel() {
+  RecordEditPanel() {
     Column() {
-      Text('新增记录')
+      Text(this.editingRecordId > 0 ? '编辑记录' : '新增记录')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .fontColor(AppColors.GRAY_900)
@@ -187,7 +193,7 @@ export struct RecordPage {
           this.recordTitle = value
         })
 
-      TextInput({ text: this.recordContent, placeholder: '请输入文字内容（选填）' })
+      TextInput({ text: this.recordContent, placeholder: '请输入文字内容' })
         .width('100%')
         .height(96)
         .fontColor(AppColors.INPUT_TEXT)
@@ -200,35 +206,22 @@ export struct RecordPage {
           this.recordContent = value
         })
 
-      Row() {
-        TextInput({ text: this.recordDate, placeholder: '日期 2026-05-28' })
-          .layoutWeight(1)
-          .height(44)
-          .fontColor(AppColors.INPUT_TEXT)
-          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.INPUT_BG)
-          .borderRadius(12)
-          .padding({ left: 12, right: 12 })
-          .margin({ right: 6 })
-          .onChange((value: string) => {
-            this.recordDate = value
-          })
-
-        TextInput({ text: this.recordTime, placeholder: '时间 14:30' })
-          .layoutWeight(1)
-          .height(44)
-          .fontColor(AppColors.INPUT_TEXT)
-          .placeholderColor(AppColors.INPUT_PLACEHOLDER)
-          .backgroundColor(AppColors.INPUT_BG)
-          .borderRadius(12)
-          .padding({ left: 12, right: 12 })
-          .margin({ left: 6 })
-          .onChange((value: string) => {
-            this.recordTime = value
-          })
-      }
-      .width('100%')
-      .margin({ bottom: 10 })
+      PlanDateTimeSelector({
+        themeColor: this.themeColor,
+        planDate: this.recordDate,
+        planStartTime: this.recordTime,
+        planEndTime: '',
+        dateLabel: '记录日期',
+        startTimeLabel: '记录时间',
+        endTimeLabel: '结束时间',
+        showEndTime: false,
+        onDateChange: (dateText: string) => {
+          this.recordDate = dateText
+        },
+        onStartTimeChange: (timeText: string) => {
+          this.recordTime = timeText
+        }
+      })
 
       Row() {
         Button(this.isSelectingImage ? '正在打开相册...' : '从相册选择图片')
@@ -262,7 +255,7 @@ export struct RecordPage {
         this.SelectedImagePreview()
       }
 
-      Button('保存记录')
+      Button(this.editingRecordId > 0 ? '保存修改' : '保存记录')
         .width('100%')
         .height(44)
         .fontSize(16)
@@ -271,7 +264,7 @@ export struct RecordPage {
         .borderRadius(12)
         .margin({ top: 4 })
         .onClick(() => {
-          this.addRecord()
+          this.saveRecord()
         })
     }
     .width('100%')
@@ -388,6 +381,18 @@ export struct RecordPage {
         Row() {
           Blank()
 
+          Button('编辑')
+            .width(72)
+            .height(34)
+            .fontSize(13)
+            .backgroundColor(AppColors.BORDER_BG)
+            .fontColor(AppColors.GRAY_900)
+            .borderRadius(10)
+            .margin({ right: 8 })
+            .onClick(() => {
+              this.editRecord(item)
+            })
+
           Button('删除')
             .width(72)
             .height(34)
@@ -503,15 +508,40 @@ export struct RecordPage {
     return result
   }
 
-  addRecord(): void {
-    this.addRecordAsync().then(() => {
-      console.info('新增时光记录成功')
+  startNewRecord(): void {
+    this.editingRecordId = -1
+    this.resetForm()
+    this.showAddPanel = true
+    this.operationTip = '正在新增时光记录'
+  }
+
+  closeRecordPanel(): void {
+    this.showAddPanel = false
+    this.editingRecordId = -1
+    this.resetForm()
+    this.operationTip = '已收起记录表单'
+  }
+
+  editRecord(item: RecordItem): void {
+    this.editingRecordId = item.id
+    this.recordTitle = item.title
+    this.recordContent = item.content
+    this.recordDate = normalizeDateInput(item.date)
+    this.recordTime = this.normalizeTime(item.time)
+    this.recordImageUris = this.cloneStringArray(item.imageUris)
+    this.showAddPanel = true
+    this.operationTip = '正在编辑“' + item.title + '”'
+  }
+
+  saveRecord(): void {
+    this.saveRecordAsync().then(() => {
+      console.info('保存时光记录成功')
     }).catch(() => {
       this.operationTip = '保存记录失败，请稍后重试'
     })
   }
 
-  async addRecordAsync(): Promise<void> {
+  async saveRecordAsync(): Promise<void> {
     if (this.recordTitle.trim().length === 0) {
       this.operationTip = '标题为必填项，请先填写标题'
       return
@@ -526,6 +556,15 @@ export struct RecordPage {
       return
     }
 
+    if (this.editingRecordId > 0) {
+      await this.updateCurrentRecord()
+      return
+    }
+
+    await this.addNewRecord()
+  }
+
+  async addNewRecord(): Promise<void> {
     let record: RecordItem = {
       id: this.recordNextId,
       title: this.recordTitle.trim(),
@@ -543,7 +582,42 @@ export struct RecordPage {
     await this.saveRecords()
     this.resetForm()
     this.showAddPanel = false
+    this.editingRecordId = -1
     this.operationTip = '已保存一条新的时光记录'
+  }
+
+  async updateCurrentRecord(): Promise<void> {
+    let found = false
+    let nextRecords: RecordItem[] = []
+    this.records.forEach((item: RecordItem) => {
+      if (item.id === this.editingRecordId) {
+        found = true
+        nextRecords.push({
+          id: item.id,
+          title: this.recordTitle.trim(),
+          content: this.recordContent.trim(),
+          date: normalizeDateInput(this.recordDate),
+          time: this.normalizeTime(this.recordTime),
+          imageUris: this.cloneStringArray(this.recordImageUris),
+          createTime: item.createTime
+        })
+      } else {
+        nextRecords.push(item)
+      }
+    })
+
+    if (!found) {
+      this.operationTip = '未找到要编辑的记录'
+      this.editingRecordId = -1
+      return
+    }
+
+    this.records = nextRecords
+    await this.saveRecords()
+    this.resetForm()
+    this.showAddPanel = false
+    this.editingRecordId = -1
+    this.operationTip = '已保存时光记录修改'
   }
 
   deleteRecord(recordId: number): void {
@@ -561,6 +635,11 @@ export struct RecordPage {
     this.records = this.records.filter((item: RecordItem) => {
       return item.id !== recordId
     })
+    if (this.editingRecordId === recordId) {
+      this.showAddPanel = false
+      this.editingRecordId = -1
+      this.resetForm()
+    }
     await this.saveRecords()
     this.operationTip = '已删除时光记录'
   }
@@ -617,6 +696,16 @@ export struct RecordPage {
     if (this.recordTime.trim().length === 0) {
       this.recordTime = this.getCurrentTimeText()
     }
+  }
+
+  getPanelToggleText(): string {
+    if (this.showAddPanel && this.editingRecordId > 0) {
+      return '取消编辑'
+    }
+    if (this.showAddPanel) {
+      return '取消'
+    }
+    return '+ 新增时光记录'
   }
 
   getSortedRecords(): RecordItem[] {

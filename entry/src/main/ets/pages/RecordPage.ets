@@ -69,26 +69,26 @@ export struct RecordPage {
           .fontColor(this.themeColor)
           .margin({ bottom: 18 })
 
-        Column() {
-          Text('记录概览')
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppColors.GRAY_900)
-            .margin({ bottom: 14 })
-
-          Row() {
-            this.SimpleStat('全部记录', this.records.length.toString())
-            this.SimpleStat('今日记录', this.getTodayRecordCount().toString())
-            this.SimpleStat('图片数量', this.getImageCount().toString())
-          }
-          .width('100%')
-          .justifyContent(FlexAlign.SpaceBetween)
-        }
-        .width('100%')
-        .padding(18)
-        .backgroundColor(AppColors.CARD_BG)
-        .borderRadius(18)
-        .margin({ bottom: 18 })
+        // Column() {
+        //   Text('记录概览')
+        //     .fontSize(20)
+        //     .fontWeight(FontWeight.Bold)
+        //     .fontColor(AppColors.GRAY_900)
+        //     .margin({ bottom: 14 })
+        //
+        //   Row() {
+        //     this.SimpleStat('全部记录', this.records.length.toString())
+        //     this.SimpleStat('今日记录', this.getTodayRecordCount().toString())
+        //     this.SimpleStat('图片数量', this.getImageCount().toString())
+        //   }
+        //   .width('100%')
+        //   .justifyContent(FlexAlign.SpaceBetween)
+        // }
+        // .width('100%')
+        // .padding(18)
+        // .backgroundColor(AppColors.CARD_BG)
+        // .borderRadius(18)
+        // .margin({ bottom: 18 })
 
         Button(this.getPanelToggleText())
           .width('100%')

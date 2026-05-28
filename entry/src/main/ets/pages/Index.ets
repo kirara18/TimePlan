@@ -1,5 +1,6 @@
 import { CalendarPage } from './CalendarPage'
 import { PlanPage } from './PlanPage'
+import { RecordPage } from './RecordPage'
 import { FocusPage } from './FocusPage'
 import { ReviewPage } from './ReviewPage'
 import { MinePage } from './MinePage'
@@ -39,6 +40,14 @@ struct Index {
         })
       }
       .tabBar('计划')
+
+      TabContent() {
+        RecordPage({
+          themeColor: this.themeColor,
+          dataRefreshVersion: this.dataRefreshVersion
+        })
+      }
+      .tabBar('时光记')
 
       TabContent() {
         FocusPage({
@@ -107,7 +116,7 @@ struct SplashScreen {
         .fontColor(AppColors.GRAY_900)
         .margin({ bottom: 8 })
 
-      Text('日历 · 计划 · 专注 · 统计')
+      Text('日历 · 计划 · 时光记 · 专注 · 统计')
         .fontSize(15)
         .fontColor(AppColors.GRAY_500)
         .margin({ bottom: 28 })

@@ -15,6 +15,8 @@ import {
   HABIT_NEXT_ID_KEY as PLAN_HABIT_NEXT_ID_KEY,
   FOCUS_RECORDS_KEY as PLAN_FOCUS_RECORDS_KEY,
   FOCUS_NEXT_ID_KEY as PLAN_FOCUS_NEXT_ID_KEY,
+  RECORDS_KEY as PLAN_RECORDS_KEY,
+  RECORD_NEXT_ID_KEY as PLAN_RECORD_NEXT_ID_KEY,
   THEME_KEY as PLAN_THEME_KEY
 } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
@@ -42,6 +44,9 @@ export struct MinePage {
 
   readonly FOCUS_RECORDS_KEY: string = PLAN_FOCUS_RECORDS_KEY
   readonly FOCUS_NEXT_ID_KEY: string = PLAN_FOCUS_NEXT_ID_KEY
+
+  readonly RECORDS_KEY: string = PLAN_RECORDS_KEY
+  readonly RECORD_NEXT_ID_KEY: string = PLAN_RECORD_NEXT_ID_KEY
 
   readonly THEME_KEY: string = PLAN_THEME_KEY
 
@@ -129,7 +134,7 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_900)
             .margin({ bottom: 8 })
 
-          Text('日历汇总计划、便签、打卡，支持专注记录、统计分析和主题切换')
+          Text('日历汇总计划、便签、打卡，支持时光记录、专注记录和统计分析')
             .fontSize(15)
             .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 10 })
@@ -161,6 +166,11 @@ export struct MinePage {
             '计划管理',
             '查看待办管理说明',
             '支持新增待办事项，设置日期时间并标记完成，帮助整理学习和生活任务。'
+          )
+          this.FeatureActionItem(
+            '时光记',
+            '查看生活记录说明',
+            '支持按时间记录生活片段，可填写标题、文字内容并从相册选择图片保存。'
           )
           this.FeatureActionItem(
             '专注模式',
@@ -276,7 +286,7 @@ export struct MinePage {
         .fontColor(AppColors.RED)
         .margin({ bottom: 8 })
 
-      Text('该操作会删除计划、便签、习惯打卡和专注记录。清空后不可恢复，请谨慎操作。')
+      Text('该操作会删除计划、便签、习惯打卡、时光记录和专注记录。清空后不可恢复，请谨慎操作。')
         .fontSize(14)
         .fontColor(AppColors.GRAY_500)
         .lineHeight(22)
@@ -473,6 +483,9 @@ export struct MinePage {
 
     await this.dataPreferences.put(this.FOCUS_RECORDS_KEY, JSON.stringify([]))
     await this.dataPreferences.put(this.FOCUS_NEXT_ID_KEY, 1)
+
+    await this.dataPreferences.put(this.RECORDS_KEY, JSON.stringify([]))
+    await this.dataPreferences.put(this.RECORD_NEXT_ID_KEY, 1)
 
     await this.dataPreferences.flush()
   }

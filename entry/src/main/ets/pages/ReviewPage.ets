@@ -29,7 +29,7 @@ export struct ReviewPage {
   @State notes: NoteItem[] = []
   @State checks: HabitData[] = []
   @State focusRecords: FocusRecord[] = []
-  @State syncTip: string = '统计数据会自动同步'
+  @State operationTip: string = ''
 
   refreshTimerId: number = -1
 
@@ -38,7 +38,7 @@ export struct ReviewPage {
       this.startAutoRefresh()
       console.info('统计页数据加载完成')
     }).catch(() => {
-      this.syncTip = '统计页数据加载失败'
+      this.operationTip = '统计页数据加载失败'
       console.error('统计页数据加载失败')
     })
   }
@@ -49,9 +49,9 @@ export struct ReviewPage {
 
   onDataRefreshVersionChange(): void {
     this.loadAllData().then(() => {
-      this.syncTip = '本地数据已清空，统计页已同步为空'
+      this.operationTip = ''
     }).catch(() => {
-      this.syncTip = '统计页同步失败'
+      this.operationTip = '统计页同步失败'
     })
   }
 
@@ -69,10 +69,12 @@ export struct ReviewPage {
           .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
 
-        Text(this.syncTip)
-          .fontSize(13)
-          .fontColor(this.themeColor)
-          .margin({ bottom: 20 })
+        if (this.operationTip.length > 0) {
+          Text(this.operationTip)
+            .fontSize(13)
+            .fontColor(AppColors.RED)
+            .margin({ bottom: 20 })
+        }
 
         Column() {
           Text('今日概览')
@@ -283,9 +285,9 @@ export struct ReviewPage {
 
     this.refreshTimerId = setInterval(() => {
       this.loadAllData().then(() => {
-        this.syncTip = '统计数据已自动同步'
+        this.operationTip = ''
       }).catch(() => {
-        this.syncTip = '统计数据同步失败'
+        this.operationTip = '统计数据同步失败'
       })
     }, 800)
   }

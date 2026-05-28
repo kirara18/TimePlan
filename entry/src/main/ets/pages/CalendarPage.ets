@@ -26,7 +26,7 @@ export struct CalendarPage {
   @State selectedDate: string = ''
   @State allItems: CalendarItem[] = []
   @State calendarDays: CalendarDay[] = []
-  @State operationTip: string = '点击日历中的日期，可查看当天详细安排'
+  @State operationTip: string = ''
   @State showMonthPicker: boolean = false
   @State showDayDetail: boolean = false
   @State pickerYear: number = 2026
@@ -54,7 +54,7 @@ export struct CalendarPage {
     this.loadCalendarItems().then(() => {
       this.updateCalendarDays()
       this.showDayDetail = false
-      this.operationTip = '本地数据已清空，日历已同步为空'
+      this.operationTip = ''
     }).catch(() => {
       this.operationTip = '日历同步失败'
     })
@@ -83,10 +83,12 @@ export struct CalendarPage {
           .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
 
-        Text(this.operationTip)
-          .fontSize(13)
-          .fontColor(this.themeColor)
-          .margin({ bottom: 18 })
+        if (this.operationTip.length > 0) {
+          Text(this.operationTip)
+            .fontSize(13)
+            .fontColor(AppColors.RED)
+            .margin({ bottom: 18 })
+        }
 
         Column() {
           Row() {
@@ -119,7 +121,7 @@ export struct CalendarPage {
                   this.showMonthPicker = !this.showMonthPicker
                 })
 
-                this.operationTip = !this.showMonthPicker ? '请选择年份和月份' : '点击日历中的日期，可查看当天详细安排'
+                this.operationTip = ''
               })
 
             Blank()
@@ -215,7 +217,7 @@ export struct CalendarPage {
             .borderRadius(12)
             .onClick(() => {
               this.showDayDetail = false
-              this.operationTip = '点击日历中的日期，可查看当天详细安排'
+              this.operationTip = ''
             })
 
           Blank()
@@ -427,7 +429,7 @@ export struct CalendarPage {
       this.currentYear = getYearFromDate(day.date)
       this.currentMonth = getMonthFromDate(day.date)
       this.updateCalendarDays()
-      this.operationTip = '已选择：' + day.date
+      this.operationTip = ''
       this.showDayDetail = true
     })
   }
@@ -511,7 +513,7 @@ export struct CalendarPage {
     this.refreshTimerId = setInterval(() => {
       this.loadCalendarItems().then(() => {
         this.updateCalendarDays()
-        this.operationTip = '日历已自动同步'
+        this.operationTip = ''
       }).catch(() => {
         this.operationTip = '日历自动同步失败'
       })
@@ -741,7 +743,7 @@ export struct CalendarPage {
     this.selectedDate = formatDate(year, month, 1)
     this.showMonthPicker = false
     this.updateCalendarDays()
-    this.operationTip = '已切换到：' + this.getMonthTitle()
+    this.operationTip = ''
   }
 
   getMonthTitle(): string {

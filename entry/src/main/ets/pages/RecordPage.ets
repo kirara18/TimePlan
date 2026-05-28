@@ -20,7 +20,7 @@ export struct RecordPage {
   @State records: RecordItem[] = []
   @State recordNextId: number = 1
   @State showAddPanel: boolean = false
-  @State operationTip: string = '记录生活中的重要瞬间，可添加文字和相册图片。'
+  @State operationTip: string = ''
 
   @State editingRecordId: number = -1
   @State recordTitle: string = ''
@@ -44,7 +44,7 @@ export struct RecordPage {
       this.showAddPanel = false
       this.editingRecordId = -1
       this.resetForm()
-      this.operationTip = '时光记已同步最新本地数据'
+      this.operationTip = ''
     }).catch(() => {
       this.operationTip = '时光记同步失败'
     })
@@ -64,10 +64,12 @@ export struct RecordPage {
           .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
 
-        Text(this.operationTip)
-          .fontSize(13)
-          .fontColor(this.themeColor)
-          .margin({ bottom: 18 })
+        if (this.operationTip.length > 0) {
+          Text(this.operationTip)
+            .fontSize(13)
+            .fontColor(AppColors.RED)
+            .margin({ bottom: 18 })
+        }
 
         // Column() {
         //   Text('记录概览')
@@ -245,7 +247,7 @@ export struct RecordPage {
           .margin({ left: 10 })
           .onClick(() => {
             this.recordImageUris = []
-            this.operationTip = '已清空本次选择的图片'
+            this.operationTip = ''
           })
       }
       .width('100%')
@@ -512,14 +514,14 @@ export struct RecordPage {
     this.editingRecordId = -1
     this.resetForm()
     this.showAddPanel = true
-    this.operationTip = '正在新增时光记录'
+    this.operationTip = ''
   }
 
   closeRecordPanel(): void {
     this.showAddPanel = false
     this.editingRecordId = -1
     this.resetForm()
-    this.operationTip = '已收起记录表单'
+    this.operationTip = ''
   }
 
   editRecord(item: RecordItem): void {
@@ -530,7 +532,7 @@ export struct RecordPage {
     this.recordTime = this.normalizeTime(item.time)
     this.recordImageUris = this.cloneStringArray(item.imageUris)
     this.showAddPanel = true
-    this.operationTip = '正在编辑“' + item.title + '”'
+    this.operationTip = ''
   }
 
   saveRecord(): void {
@@ -583,7 +585,7 @@ export struct RecordPage {
     this.resetForm()
     this.showAddPanel = false
     this.editingRecordId = -1
-    this.operationTip = '已保存一条新的时光记录'
+    this.operationTip = ''
   }
 
   async updateCurrentRecord(): Promise<void> {
@@ -617,7 +619,7 @@ export struct RecordPage {
     this.resetForm()
     this.showAddPanel = false
     this.editingRecordId = -1
-    this.operationTip = '已保存时光记录修改'
+    this.operationTip = ''
   }
 
   deleteRecord(recordId: number): void {
@@ -641,7 +643,7 @@ export struct RecordPage {
       this.resetForm()
     }
     await this.saveRecords()
-    this.operationTip = '已删除时光记录'
+    this.operationTip = ''
   }
 
   async saveRecords(): Promise<void> {
@@ -673,12 +675,12 @@ export struct RecordPage {
     this.isSelectingImage = false
 
     if (photoSelectResult.photoUris.length <= 0) {
-      this.operationTip = '未选择图片'
+      this.operationTip = ''
       return
     }
 
     this.recordImageUris = photoSelectResult.photoUris
-    this.operationTip = '已选择 ' + this.recordImageUris.length.toString() + ' 张图片'
+    this.operationTip = ''
   }
 
   resetForm(): void {

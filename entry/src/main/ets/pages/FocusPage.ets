@@ -34,7 +34,7 @@ export struct FocusPage {
   @State totalSeconds: number = 25 * 60
   @State remainSeconds: number = 25 * 60
   @State isRunning: boolean = false
-  @State focusTip: string = '可选择待办，也可直接开始自由专注'
+  @State operationTip: string = ''
 
   @State customMinutesText: string = ''
   @State durationTip: string = '当前时长：25 分钟'
@@ -48,6 +48,7 @@ export struct FocusPage {
       this.startDataAutoRefresh()
       console.info('专注页数据加载完成')
     }).catch(() => {
+      this.operationTip = '专注页数据加载失败'
       console.error('专注页数据加载失败')
     })
   }
@@ -66,9 +67,9 @@ export struct FocusPage {
     this.remainSeconds = this.totalSeconds
 
     this.initPreferencesAndLoad().then(() => {
-      this.focusTip = '本地数据已清空，专注页已同步为空'
+      this.operationTip = ''
     }).catch(() => {
-      this.focusTip = '专注页同步失败'
+      this.operationTip = '专注页同步失败'
     })
   }
 
@@ -114,10 +115,12 @@ export struct FocusPage {
             .fontColor(AppColors.GRAY_900)
             .margin({ top: 10, bottom: 8 })
 
-          Text(this.focusTip)
-            .fontSize(14)
-            .fontColor(AppColors.GRAY_500)
-            .margin({ bottom: 8 })
+          if (this.operationTip.length > 0) {
+            Text(this.operationTip)
+              .fontSize(14)
+              .fontColor(AppColors.RED)
+              .margin({ bottom: 8 })
+          }
 
           Text(this.durationTip)
             .fontSize(13)
@@ -275,7 +278,7 @@ export struct FocusPage {
           this.totalSeconds = minutes * 60
           this.remainSeconds = minutes * 60
           this.durationTip = '当前时长：' + minutes.toString() + ' 分钟'
-          this.focusTip = '已设置 ' + minutes.toString() + ' 分钟专注'
+          this.operationTip = ''
         }
       })
   }
@@ -318,7 +321,7 @@ export struct FocusPage {
       if (!this.isRunning) {
         this.selectedTaskId = 0
         this.selectedTaskTitle = '自由专注'
-        this.focusTip = '当前专注：自由专注'
+        this.operationTip = ''
       }
     })
   }
@@ -361,7 +364,7 @@ export struct FocusPage {
       if (!this.isRunning) {
         this.selectedTaskId = task.id
         this.selectedTaskTitle = task.title
-        this.focusTip = '当前专注：' + task.title
+        this.operationTip = ''
       }
     })
   }
@@ -522,7 +525,7 @@ export struct FocusPage {
     let minutes = Number(this.customMinutesText.trim())
 
     if (isNaN(minutes) || minutes <= 0) {
-      this.focusTip = '请输入大于 0 的分钟数'
+      this.operationTip = '请输入大于 0 的分钟数'
       return
     }
 
@@ -531,7 +534,7 @@ export struct FocusPage {
     this.totalSeconds = finalMinutes * 60
     this.remainSeconds = finalMinutes * 60
     this.durationTip = '当前时长：' + finalMinutes.toString() + ' 分钟'
-    this.focusTip = '已设置自定义 ' + finalMinutes.toString() + ' 分钟专注'
+    this.operationTip = ''
   }
 
   startFocus(): void {
@@ -550,7 +553,7 @@ export struct FocusPage {
     }
 
     this.isRunning = true
-    this.focusTip = '专注进行中：' + this.getCurrentFocusTitle()
+    this.operationTip = ''
 
     if (this.timerId !== -1) {
       return
@@ -570,7 +573,7 @@ export struct FocusPage {
   pauseFocus(): void {
     this.stopTimerOnly()
     this.isRunning = false
-    this.focusTip = '已暂停，可继续专注'
+    this.operationTip = ''
   }
 
   resetFocus(): void {
@@ -578,7 +581,7 @@ export struct FocusPage {
     this.isRunning = false
     this.remainSeconds = this.totalSeconds
     this.focusStartTime = ''
-    this.focusTip = '当前专注：' + this.getCurrentFocusTitle()
+    this.operationTip = ''
   }
 
   finishFocus(): void {
@@ -601,11 +604,12 @@ export struct FocusPage {
     this.focusRecords = [record, ...this.focusRecords]
     this.focusNextId = this.focusNextId + 1
     this.focusStartTime = ''
-    this.focusTip = '专注完成，已保存记录'
+    this.operationTip = ''
 
     this.saveFocusRecords().then(() => {
       console.info('专注记录保存成功')
     }).catch(() => {
+      this.operationTip = '专注记录保存失败'
       console.error('专注记录保存失败')
     })
   }

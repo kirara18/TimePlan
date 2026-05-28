@@ -51,7 +51,7 @@ export struct MinePage {
   readonly THEME_KEY: string = PLAN_THEME_KEY
 
   @State themeMode: string = '默认蓝色'
-  @State operationTip: string = '支持本地数据导出与恢复，备份文件由你自行保存'
+  @State operationTip: string = ''
   @State currentInfoPage: string = 'main'
   @State currentFeatureTitle: string = ''
   @State currentFeatureContent: string = ''
@@ -98,7 +98,7 @@ export struct MinePage {
           },
           onDataRestored: () => {
             this.onDataCleared()
-            this.operationTip = '已从备份文件恢复数据，其他页面已刷新'
+            this.operationTip = ''
           }
         })
       } else if (this.currentInfoPage === 'feature') {
@@ -139,9 +139,11 @@ export struct MinePage {
             .fontColor(AppColors.GRAY_500)
             .margin({ bottom: 10 })
 
-          Text(this.operationTip)
-            .fontSize(13)
-            .fontColor(this.themeColor)
+          if (this.operationTip.length > 0) {
+            Text(this.operationTip)
+              .fontSize(13)
+              .fontColor(AppColors.RED)
+          }
         }
         .width('100%')
         .padding(20)
@@ -242,7 +244,7 @@ export struct MinePage {
             .margin({ bottom: 10 })
             .onClick(() => {
               this.showClearConfirm = true
-              this.operationTip = '请确认是否清空全部本地数据'
+              this.operationTip = ''
             })
 
         }
@@ -302,7 +304,7 @@ export struct MinePage {
           .margin({ right: 8 })
           .onClick(() => {
             this.showClearConfirm = false
-            this.operationTip = '已取消清空操作'
+            this.operationTip = ''
           })
 
         Button('确认清空')
@@ -425,7 +427,7 @@ export struct MinePage {
     this.onThemeChange(color)
 
     this.saveTheme().then(() => {
-      this.operationTip = '主题已切换为：' + this.themeMode
+      this.operationTip = ''
     }).catch(() => {
       this.operationTip = '主题偏好保存失败'
     })
@@ -457,7 +459,7 @@ export struct MinePage {
   clearAllData(): void {
     this.clearAllDataAsync().then(() => {
       this.onDataCleared()
-      this.operationTip = '本地数据已清空，其他页面已同步为空'
+      this.operationTip = ''
     }).catch(() => {
       this.operationTip = '清空数据失败'
     })

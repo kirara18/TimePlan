@@ -1,5 +1,6 @@
 import { CalendarPage } from './CalendarPage'
 import { PlanPage } from './PlanPage'
+import { RecordPage } from './RecordPage'
 import { FocusPage } from './FocusPage'
 import { ReviewPage } from './ReviewPage'
 import { MinePage } from './MinePage'
@@ -24,54 +25,63 @@ struct Index {
       SplashScreen({ themeColor: this.themeColor })
     } else {
       Tabs({ barPosition: BarPosition.End, index: this.currentIndex }) {
-      TabContent() {
-        CalendarPage({
-          themeColor: this.themeColor,
-          dataRefreshVersion: this.dataRefreshVersion
-        })
-      }
-      .tabBar('日历')
+        TabContent() {
+          CalendarPage({
+            themeColor: this.themeColor,
+            dataRefreshVersion: this.dataRefreshVersion
+          })
+        }
+        .tabBar('日历')
 
-      TabContent() {
-        PlanPage({
-          themeColor: this.themeColor,
-          dataRefreshVersion: this.dataRefreshVersion
-        })
-      }
-      .tabBar('计划')
+        TabContent() {
+          PlanPage({
+            themeColor: this.themeColor,
+            dataRefreshVersion: this.dataRefreshVersion
+          })
+        }
+        .tabBar('计划')
 
-      TabContent() {
-        FocusPage({
-          themeColor: this.themeColor,
-          dataRefreshVersion: this.dataRefreshVersion
-        })
-      }
-      .tabBar('专注')
+        TabContent() {
+          FocusPage({
+            themeColor: this.themeColor,
+            dataRefreshVersion: this.dataRefreshVersion
+          })
+        }
+        .tabBar('专注')
 
-      TabContent() {
-        ReviewPage({
-          themeColor: this.themeColor,
-          dataRefreshVersion: this.dataRefreshVersion
-        })
-      }
-      .tabBar('统计')
+        TabContent() {
+          RecordPage({
+            themeColor: this.themeColor,
+            dataRefreshVersion: this.dataRefreshVersion
+          })
+        }
+        .tabBar('时光记')
 
-      TabContent() {
-        MinePage({
-          themeColor: this.themeColor,
-          onThemeChange: (color: string) => {
-            this.themeColor = color
-          },
-          onDataCleared: () => {
-            this.dataRefreshVersion = this.dataRefreshVersion + 1
-          }
-        })
+        TabContent() {
+          ReviewPage({
+            themeColor: this.themeColor,
+            dataRefreshVersion: this.dataRefreshVersion
+          })
+        }
+        .tabBar('统计')
+
+        TabContent() {
+          MinePage({
+            themeColor: this.themeColor,
+            onThemeChange: (color: string) => {
+              this.themeColor = color
+            },
+            onDataCleared: () => {
+              this.dataRefreshVersion = this.dataRefreshVersion + 1
+            }
+          })
+        }
+        .tabBar('我的')
       }
-      .tabBar('我的')
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(AppColors.PAGE_BG)
+      .width('100%')
+      .height('100%')
+      .backgroundColor(AppColors.PAGE_BG)
+      .barMode(BarMode.Scrollable)
       .onChange((index: number) => {
         this.currentIndex = index
       })
@@ -107,7 +117,7 @@ struct SplashScreen {
         .fontColor(AppColors.GRAY_900)
         .margin({ bottom: 8 })
 
-      Text('日历 · 计划 · 专注 · 统计')
+      Text('日历 · 计划 · 专注 · 时光记 · 统计')
         .fontSize(15)
         .fontColor(AppColors.GRAY_500)
         .margin({ bottom: 28 })

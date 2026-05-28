@@ -78,7 +78,7 @@ export struct CalendarPage {
           .fontColor(AppColors.GRAY_800)
           .margin({ top: 30, bottom: 8 })
 
-        Text('按月查看计划、便签、打卡中的全部安排')
+        Text('按月查看待办、便签和打卡中的全部安排')
           .fontSize(15)
           .fontColor(AppColors.GRAY_500)
           .margin({ bottom: 8 })
@@ -265,6 +265,7 @@ export struct CalendarPage {
           }
           .width('100%')
           .justifyContent(FlexAlign.SpaceBetween)
+
         }
         .width('100%')
         .padding(18)
@@ -284,7 +285,7 @@ export struct CalendarPage {
               themeColor: this.themeColor,
               iconText: '计划',
               title: '这一天暂无计划',
-              description: '可以到计划页新增待办、便签或打卡，填写日期和时间后会自动显示在这里。'
+              description: '可以到计划页新增待办、便签或打卡。'
             })
           } else {
             ForEach(this.getSelectedDayItems(), (item: CalendarItem) => {
@@ -456,7 +457,7 @@ export struct CalendarPage {
             .fontColor(item.done ? AppColors.GRAY_400 : AppColors.GRAY_900)
             .layoutWeight(1)
 
-          if (item.type !== '便签') {
+          if (item.type === '待办' || item.type === '打卡') {
             Text(item.done ? '已完成' : '未完成')
               .fontSize(12)
               .fontColor(item.done ? AppColors.GREEN : AppColors.RED)
@@ -472,8 +473,8 @@ export struct CalendarPage {
           .fontColor(AppColors.GRAY_500)
           .margin({ top: 6 })
 
-        if (item.done && item.type === '计划') {
-          Text('该计划已在计划页标记完成')
+        if (item.done && item.type === '待办') {
+          Text('该待办已在计划页标记完成')
             .fontSize(12)
             .fontColor(AppColors.GREEN)
             .margin({ top: 6 })

@@ -3,7 +3,7 @@ import { common } from '@kit.AbilityKit'
 import { picker, fileIo as fs } from '@kit.CoreFileKit'
 import { util } from '@kit.ArkTS'
 import { BusinessError } from '@kit.BasicServicesKit'
-import { TodoTask, NoteItem, HabitData, FocusRecord } from '../model/AppModels'
+import { TodoTask, NoteItem, HabitData, FocusRecord, RecordItem } from '../model/AppModels'
 import { PlanStorageService } from '../services/PlanStorageService'
 import {
   TASKS_KEY,
@@ -14,6 +14,8 @@ import {
   HABIT_NEXT_ID_KEY,
   FOCUS_RECORDS_KEY,
   FOCUS_NEXT_ID_KEY,
+  RECORDS_KEY,
+  RECORD_NEXT_ID_KEY,
   THEME_KEY
 } from '../utils/StoreConstants'
 import { getTimePlanPreferences } from '../utils/PreferenceUtil'
@@ -28,6 +30,8 @@ interface TimePlanBackupData {
   habitNextId: number
   focusRecords: FocusRecord[]
   focusNextId: number
+  records: RecordItem[]
+  recordNextId: number
   themeMode: string
 }
 
@@ -49,7 +53,7 @@ export struct DataBackupPage {
   dataPreferences: preferences.Preferences | null = null
   pendingBackup: TimePlanBackupFile | null = null
 
-  @State statusText: string = '备份文件会包含计划、便签、习惯打卡、专注记录和主题偏好。'
+  @State statusText: string = '备份文件会包含计划、便签、习惯打卡、时光记录、专注记录和主题偏好。'
   @State pendingSummary: string = ''
   @State showRestoreConfirm: boolean = false
   @State isWorking: boolean = false
@@ -222,7 +226,7 @@ export struct DataBackupPage {
         .lineHeight(22)
         .margin({ bottom: 12 })
 
-      Text('恢复会覆盖当前应用内的计划、便签、习惯打卡、专注记录和主题偏好。当前数据如未备份，将无法在应用内找回。')
+      Text('恢复会覆盖当前应用内的计划、便签、习惯打卡、时光记录、专注记录和主题偏好。当前数据如未备份，将无法在应用内找回。')
         .fontSize(14)
         .fontColor(AppColors.GRAY_500)
         .lineHeight(22)
@@ -378,6 +382,8 @@ export struct DataBackupPage {
     await this.dataPreferences.put(HABIT_NEXT_ID_KEY, backupData.habitNextId)
     await this.dataPreferences.put(FOCUS_RECORDS_KEY, JSON.stringify(backupData.focusRecords))
     await this.dataPreferences.put(FOCUS_NEXT_ID_KEY, backupData.focusNextId)
+    await this.dataPreferences.put(RECORDS_KEY, JSON.stringify(backupData.records))
+    await this.dataPreferences.put(RECORD_NEXT_ID_KEY, backupData.recordNextId)
     await this.dataPreferences.put(THEME_KEY, backupData.themeMode)
     await this.dataPreferences.flush()
 
@@ -409,17 +415,20 @@ export struct DataBackupPage {
     let noteText = await this.getPreferenceString(NOTES_KEY, '[]')
     let habitText = await this.getPreferenceString(HABITS_KEY, '[]')
     let focusText = await this.getPreferenceString(FOCUS_RECORDS_KEY, '[]')
+    let recordText = await this.getPreferenceString(RECORDS_KEY, '[]')
     let themeMode = await this.getPreferenceString(THEME_KEY, '默认蓝色')
 
     let tasks = PlanStorageService.normalizeTasks(this.parseTaskArray(taskText))
     let notes = PlanStorageService.normalizeNotes(this.parseNoteArray(noteText))
     let habits = PlanStorageService.normalizeChecks(this.parseHabitArray(habitText))
     let focusRecords = this.normalizeFocusRecords(this.parseFocusRecordArray(focusText))
+    let records = this.normalizeRecords(this.parseRecordArray(recordText))
 
     let taskNextId = this.ensureNextId(await this.getPreferenceNumber(TASK_NEXT_ID_KEY, 1), this.getMaxTaskId(tasks))
     let noteNextId = this.ensureNextId(await this.getPreferenceNumber(NOTE_NEXT_ID_KEY, 1), this.getMaxNoteId(notes))
     let habitNextId = this.ensureNextId(await this.getPreferenceNumber(HABIT_NEXT_ID_KEY, 1), this.getMaxHabitId(habits))
     let focusNextId = this.ensureNextId(await this.getPreferenceNumber(FOCUS_NEXT_ID_KEY, 1), this.getMaxFocusRecordId(focusRecords))
+    let recordNextId = this.ensureNextId(await this.getPreferenceNumber(RECORD_NEXT_ID_KEY, 1), this.getMaxRecordId(records))
 
     return {
       tasks: tasks,
@@ -430,6 +439,8 @@ export struct DataBackupPage {
       habitNextId: habitNextId,
       focusRecords: focusRecords,
       focusNextId: focusNextId,
+      records: records,
+      recordNextId: recordNextId,
       themeMode: this.normalizeThemeMode(themeMode)
     }
   }
@@ -444,6 +455,8 @@ export struct DataBackupPage {
       habitNextId: 1,
       focusRecords: [],
       focusNextId: 1,
+      records: [],
+      recordNextId: 1,
       themeMode: '默认蓝色'
     }
   }
@@ -469,6 +482,7 @@ export struct DataBackupPage {
     let notes = PlanStorageService.normalizeNotes(parsed.data.notes)
     let habits = PlanStorageService.normalizeChecks(parsed.data.habits)
     let focusRecords = this.normalizeFocusRecords(parsed.data.focusRecords)
+    let records = this.normalizeRecords(this.safeRecordArray(parsed.data.records))
 
     return {
       app: 'TimePlan',
@@ -484,6 +498,8 @@ export struct DataBackupPage {
         habitNextId: this.ensureNextId(parsed.data.habitNextId, this.getMaxHabitId(habits)),
         focusRecords: focusRecords,
         focusNextId: this.ensureNextId(parsed.data.focusNextId, this.getMaxFocusRecordId(focusRecords)),
+        records: records,
+        recordNextId: this.ensureNextId(parsed.data.recordNextId, this.getMaxRecordId(records)),
         themeMode: this.normalizeThemeMode(parsed.data.themeMode)
       }
     }
@@ -581,6 +597,49 @@ export struct DataBackupPage {
     return []
   }
 
+  parseRecordArray(text: string): RecordItem[] {
+    try {
+      let parsed = JSON.parse(text) as RecordItem[]
+      if (Array.isArray(parsed)) {
+        return parsed
+      }
+    } catch (error) {
+      console.error('时光记数据解析失败')
+    }
+    return []
+  }
+
+  safeRecordArray(list: RecordItem[]): RecordItem[] {
+    if (Array.isArray(list)) {
+      return list
+    }
+    return []
+  }
+
+  normalizeRecords(list: RecordItem[]): RecordItem[] {
+    let result: RecordItem[] = []
+    list.forEach((item: RecordItem) => {
+      let images: string[] = []
+      if (Array.isArray(item.imageUris)) {
+        item.imageUris.forEach((uri: string) => {
+          if (typeof uri === 'string' && uri.length > 0) {
+            images.push(uri)
+          }
+        })
+      }
+      result.push({
+        id: this.safeNumber(item.id, 0),
+        title: this.safeString(item.title, '未命名记录'),
+        content: this.safeString(item.content, ''),
+        date: this.safeString(item.date, ''),
+        time: this.safeString(item.time, ''),
+        imageUris: images,
+        createTime: this.safeNumber(item.createTime, new Date().getTime())
+      })
+    })
+    return result
+  }
+
   normalizeFocusRecords(list: FocusRecord[]): FocusRecord[] {
     let result: FocusRecord[] = []
     list.forEach((item: FocusRecord) => {
@@ -601,7 +660,7 @@ export struct DataBackupPage {
   createBackupSummary(backupFile: TimePlanBackupFile): string {
     return '备份时间：' + backupFile.createdAt + '\n' +
       '计划：' + backupFile.data.tasks.length + ' 条，便签：' + backupFile.data.notes.length + ' 条，打卡：' +
-      backupFile.data.habits.length + ' 项，专注记录：' + backupFile.data.focusRecords.length + ' 条。'
+      backupFile.data.habits.length + ' 项，时光记录：' + backupFile.data.records.length + ' 条，专注记录：' + backupFile.data.focusRecords.length + ' 条。'
   }
 
   createBackupFileName(): string {
@@ -666,6 +725,16 @@ export struct DataBackupPage {
   getMaxFocusRecordId(list: FocusRecord[]): number {
     let maxId = 0
     list.forEach((item: FocusRecord) => {
+      if (item.id > maxId) {
+        maxId = item.id
+      }
+    })
+    return maxId
+  }
+
+  getMaxRecordId(list: RecordItem[]): number {
+    let maxId = 0
+    list.forEach((item: RecordItem) => {
       if (item.id > maxId) {
         maxId = item.id
       }

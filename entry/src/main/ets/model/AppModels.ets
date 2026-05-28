@@ -65,3 +65,14 @@ export interface FocusRecord {
   endTime: string
   createTime: number
 }
+
+
+export interface RecordItem {
+  id: number
+  title: string
+  content: string
+  date: string
+  time: string
+  imageUris: string[]
+  createTime: number
+}

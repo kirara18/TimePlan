@@ -13,3 +13,6 @@ export const THEME_KEY: string = 'app_theme_mode'
 
 export const FOCUS_RECORDS_KEY: string = 'focus_records'
 export const FOCUS_NEXT_ID_KEY: string = 'focus_records_next_id'
+
+export const RECORDS_KEY: string = 'record_items'
+export const RECORD_NEXT_ID_KEY: string = 'record_items_next_id'
